@@ -1587,7 +1587,7 @@ body.dark-mode .roulette-column {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 20;
+  z-index: 1501;
 }
 
 .chat-button {
