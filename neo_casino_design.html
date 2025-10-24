@@ -297,14 +297,6 @@
           <p class="rating">★ 4.8</p>
           <button class="btn secondary game-launch">Играть</button>
         </article>
-        <article class="game-card online" data-game="rocket">
-          <figure class="game-thumb">
-            <img src="https://i.imgur.com/5eBojeO.png" alt="Neo Rocket" loading="lazy" />
-          </figure>
-          <h3>Neo Rocket</h3>
-          <p class="rating">★ 4.9</p>
-          <button class="btn secondary game-launch">Играть</button>
-        </article>
         <article class="game-card offline" data-game="blackjack">
           <figure class="game-thumb">
             <img src="https://i.imgur.com/txlCdxO.png" alt="Логотип блэкджека" loading="lazy" />
@@ -409,7 +401,13 @@
           <div class="roulette-phase" id="roulettePhase">Приём ставок</div>
           <div class="roulette-timer">До спина: <span id="rouletteCountdown">15.0</span> c</div>
           <div class="roulette-history">
-            <h3>История вращений</h3>
+            <div class="roulette-history-header">
+              <span class="roulette-history-icon" aria-hidden="true">⟳</span>
+              <div class="roulette-history-text">
+                <h3>История вращений</h3>
+                <p>Последние 12 раундов</p>
+              </div>
+            </div>
             <div class="roulette-history-track" id="rouletteHistory" aria-live="polite"></div>
           </div>
         </div>
@@ -459,53 +457,6 @@
             <ul id="rouletteColumnGreen" class="roulette-bets-list"></ul>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="rocketGame" class="page-block game-page hidden" data-page="rocket" data-requires-auth="true">
-    <div class="game-layout glassy">
-      <div class="game-header">
-        <div class="game-title">
-          <button class="btn outline back-to-lobby" data-target="home">← В лобби</button>
-          <h2>Neo Rocket</h2>
-        </div>
-        <p>Сделайте ставку, дождитесь взлёта и успейте забрать выигрыш до взрыва.</p>
-      </div>
-      <div class="game-body rocket-body">
-        <div class="rocket-stage">
-          <div class="rocket-meta">
-            <div class="rocket-phase" id="rocketPhase">Приём ставок</div>
-            <div class="rocket-timer">До старта: <span id="rocketCountdown">15.0</span> c</div>
-          </div>
-          <div class="rocket-scene" id="rocketScene" aria-live="polite">
-            <div class="rocket-stars"></div>
-            <img
-              src="https://i.imgur.com/7KWFqhB.png"
-              alt="Ракета Neo Rocket"
-              class="rocket-ship"
-              id="rocketShip"
-              loading="lazy"
-            />
-            <div class="rocket-multiplier">x<span id="rocketMultiplier">1.00</span></div>
-          </div>
-          <p class="rocket-status" id="rocketStatus">Сделайте ставку и приготовьтесь к запуску.</p>
-        </div>
-        <div class="game-controls rocket-controls">
-          <form id="rocketForm" class="bet-form">
-            <label class="input-group">
-              <span>Размер ставки (₽)</span>
-              <input type="number" name="stake" min="100" step="50" placeholder="Минимум 100" required />
-            </label>
-            <button type="submit" class="btn primary" id="rocketStart">Сделать ставку</button>
-          </form>
-          <button type="button" class="btn outline" id="rocketCashout" disabled>Забрать выигрыш</button>
-          <p class="form-feedback hidden" id="rocketFeedback"></p>
-        </div>
-      </div>
-      <div class="rocket-bets-board">
-        <h3>Ставки других игроков</h3>
-        <ul class="rocket-bets-list" id="rocketBetsList"></ul>
       </div>
     </div>
   </section>

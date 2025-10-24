@@ -975,17 +975,12 @@ body.dark-mode .game-card {
 }
 
 #rouletteGame .game-body {
-  grid-template-columns: minmax(360px, 1.7fr) minmax(260px, 1fr);
+  grid-template-columns: minmax(400px, 2.1fr) minmax(240px, 0.9fr);
   align-items: stretch;
 }
 
 #rouletteGame .game-controls {
   align-self: stretch;
-}
-
-#rocketGame .rocket-body {
-  grid-template-columns: minmax(360px, 1.6fr) minmax(260px, 1fr);
-  align-items: stretch;
 }
 
 .game-visual {
@@ -1003,18 +998,28 @@ body.dark-mode .game-card {
 
 .roulette-stage {
   background: rgba(81, 192, 255, 0.12);
-  padding: 24px 28px 28px;
+  padding: 28px 32px 32px;
   display: grid;
-  gap: 18px;
+  gap: 20px;
   place-items: center;
 }
 
 .roulette-wrapper {
   position: relative;
-  width: min(420px, 100%);
+  width: min(460px, 100%);
   aspect-ratio: 1 / 1;
   display: grid;
   place-items: center;
+}
+
+.roulette-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: -34px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(12, 24, 55, 0.32) 0%, transparent 70%);
+  box-shadow: 0 26px 68px rgba(8, 15, 32, 0.55), 0 8px 20px rgba(12, 24, 55, 0.45);
+  z-index: -2;
 }
 
 .roulette-wrapper::after {
@@ -1047,8 +1052,8 @@ body.dark-mode .game-card {
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, #121a2f 0%, #0a1124 45%, #04060d 80%, rgba(4, 6, 13, 0.9) 100%);
-  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.08), inset 0 0 0 18px rgba(8, 15, 32, 0.65), 0 18px 40px rgba(12, 24, 55, 0.45);
+  background: radial-gradient(circle at 50% 50%, #121a2f 0%, #0a1124 45%, #04060d 80%, rgba(4, 6, 13, 0.92) 100%);
+  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.08), inset 0 0 0 18px rgba(8, 15, 32, 0.65);
   transition: transform 6s cubic-bezier(0.12, 0.02, 0, 1);
   overflow: hidden;
 }
@@ -1074,15 +1079,15 @@ body.dark-mode .game-card {
 
 .roulette-pointer {
   position: absolute;
-  top: -12px;
+  top: -34px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 18px solid transparent;
   border-right: 18px solid transparent;
-  border-bottom: 28px solid #f5c869;
-  filter: drop-shadow(0 8px 16px rgba(245, 200, 105, 0.35));
+  border-top: 32px solid #f5c869;
+  filter: drop-shadow(0 12px 22px rgba(245, 200, 105, 0.45));
 }
 
 .roulette-phase,
@@ -1102,65 +1107,127 @@ body.dark-mode .game-card {
 .roulette-history {
   width: 100%;
   display: grid;
-  gap: 12px;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: var(--radius-md);
+  background: rgba(6, 14, 28, 0.65);
+  border: 1px solid rgba(81, 192, 255, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 20px 38px rgba(8, 15, 32, 0.35);
 }
 
-.roulette-history h3 {
+.roulette-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.roulette-history-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(81, 192, 255, 0.25), rgba(67, 107, 255, 0.45));
+  color: #f5f7ff;
+  font-size: 18px;
+  box-shadow: 0 12px 22px rgba(81, 192, 255, 0.3);
+}
+
+.roulette-history-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roulette-history-text h3 {
   margin: 0;
-  text-align: center;
-  font-size: 15px;
-  letter-spacing: 0.04em;
+  font-size: 16px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
+.roulette-history-text p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
 .roulette-history-track {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+  gap: 12px;
   justify-content: center;
-  gap: 10px;
 }
 
 .roulette-history-item {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(8, 15, 32, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  color: #fefefe;
+  text-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 26px rgba(8, 15, 32, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.roulette-history-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 70%);
+  opacity: 0.6;
 }
 
 .roulette-history-item.red {
-  background: linear-gradient(135deg, #ff5f72, #ff3153);
+  background: linear-gradient(135deg, #ff445d, #ff7a6f);
 }
 
 .roulette-history-item.black {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.88));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(7, 10, 18, 0.92));
 }
 
 .roulette-history-item.green {
-  background: linear-gradient(135deg, #3ccf72, #29a856);
+  background: linear-gradient(135deg, #3dd17c, #2fa960);
 }
 
 .roulette-bets-board {
-  margin-top: 8px;
+  margin: 20px auto 0;
+  max-width: 520px;
+  width: 100%;
   background: rgba(81, 192, 255, 0.12);
   border-radius: var(--radius-md);
-  padding: 24px;
+  padding: 20px 24px;
   display: grid;
-  gap: 20px;
+  gap: 18px;
+  box-shadow: var(--shadow-soft);
 }
 
 #rouletteGame .roulette-bets-board {
-  align-self: stretch;
+  align-self: center;
 }
 
 .roulette-bets-board h3 {
   margin: 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .roulette-columns {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .roulette-column {
@@ -1168,8 +1235,8 @@ body.dark-mode .game-card {
   border-radius: var(--radius-sm);
   padding: 16px;
   display: grid;
-  gap: 14px;
-  min-height: 220px;
+  gap: 12px;
+  min-height: 200px;
 }
 
 .roulette-column h4 {
@@ -1218,213 +1285,6 @@ body.dark-mode .game-card {
 .roulette-bet.player {
   background: linear-gradient(135deg, rgba(79, 123, 255, 0.85), rgba(41, 169, 255, 0.85));
   box-shadow: 0 12px 24px rgba(79, 123, 255, 0.4);
-}
-
-.rocket-stage {
-  background: rgba(136, 92, 255, 0.12);
-  border-radius: var(--radius-md);
-  padding: 28px;
-  display: grid;
-  gap: 18px;
-}
-
-.rocket-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.rocket-phase,
-.rocket-timer {
-  font-weight: 600;
-  background: rgba(20, 11, 46, 0.45);
-  padding: 8px 16px;
-  border-radius: 999px;
-  box-shadow: var(--shadow-soft);
-}
-
-.rocket-timer {
-  font-size: 15px;
-}
-
-.rocket-scene {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  background: radial-gradient(circle at 20% 85%, rgba(255, 255, 255, 0.3), transparent 60%),
-    radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.2), transparent 70%),
-    linear-gradient(135deg, rgba(34, 16, 72, 0.95), rgba(9, 10, 33, 0.95));
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08), 0 24px 46px rgba(35, 24, 79, 0.45);
-}
-
-.rocket-scene::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.4) 0.5px, transparent 0.5px);
-  background-size: 32px 32px;
-  opacity: 0.25;
-  animation: star-field 12s linear infinite;
-}
-
-.rocket-stars {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 10% 90%, rgba(255, 94, 132, 0.3), transparent 60%),
-    radial-gradient(circle at 70% 20%, rgba(92, 209, 255, 0.25), transparent 55%);
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.rocket-ship {
-  position: absolute;
-  width: 120px;
-  bottom: -90px;
-  left: -110px;
-  transform: rotate(-14deg);
-  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.45));
-}
-
-.rocket-scene.launching .rocket-ship {
-  animation: rocket-flight 7s cubic-bezier(0.3, 0.09, 0.12, 1) forwards;
-}
-
-.rocket-scene.crashed {
-  animation: rocket-shake 0.4s ease-in-out 2;
-}
-
-.rocket-scene.crashed .rocket-ship {
-  animation: rocket-fade 0.6s ease forwards;
-}
-
-.rocket-multiplier {
-  position: absolute;
-  top: 18px;
-  right: 22px;
-  font-weight: 700;
-  font-size: 34px;
-  color: #fff;
-  text-shadow: 0 12px 30px rgba(105, 79, 255, 0.55);
-}
-
-.rocket-status {
-  margin: 0;
-  font-weight: 500;
-  text-align: center;
-}
-
-.rocket-controls {
-  display: grid;
-  gap: 18px;
-  align-content: start;
-}
-
-.rocket-bets-board {
-  margin-top: 20px;
-  background: rgba(136, 92, 255, 0.12);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  display: grid;
-  gap: 18px;
-}
-
-.rocket-bets-board h3 {
-  margin: 0;
-}
-
-.rocket-bets-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 12px;
-}
-
-.rocket-bet {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  background: rgba(37, 18, 77, 0.75);
-  color: #fff;
-  font-weight: 600;
-  opacity: 0;
-  transform: translateY(8px);
-  animation: bet-pop 0.35s ease forwards;
-}
-
-.rocket-bet.player {
-  background: linear-gradient(135deg, rgba(123, 92, 255, 0.9), rgba(86, 174, 255, 0.9));
-  box-shadow: 0 14px 28px rgba(123, 92, 255, 0.45);
-}
-
-.rocket-bet.cashed span:last-child {
-  color: #58f79b;
-}
-
-.rocket-bet.lost {
-  opacity: 0.65;
-  background: rgba(24, 12, 40, 0.65);
-}
-
-.rocket-bet span:last-child {
-  font-weight: 700;
-}
-
-@keyframes star-field {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-32px, -32px, 0);
-  }
-}
-
-@keyframes rocket-flight {
-  0% {
-    transform: translate(-18%, 18%) rotate(-12deg) scale(0.92);
-  }
-  25% {
-    transform: translate(8%, -2%) rotate(-6deg) scale(1);
-  }
-  50% {
-    transform: translate(34%, -32%) rotate(-2deg) scale(1.08);
-  }
-  75% {
-    transform: translate(58%, -68%) rotate(4deg) scale(1.15);
-  }
-  100% {
-    transform: translate(88%, -112%) rotate(9deg) scale(1.22);
-  }
-}
-
-@keyframes rocket-shake {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-  25% {
-    transform: translate3d(6px, -4px, 0);
-  }
-  50% {
-    transform: translate3d(-4px, 6px, 0);
-  }
-  75% {
-    transform: translate3d(3px, -6px, 0);
-  }
-}
-
-@keyframes rocket-fade {
-  to {
-    opacity: 0;
-    transform: scale(0.8) translate(-20%, 40%);
-  }
 }
 
 .roulette-bet span:last-child {
