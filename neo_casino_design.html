@@ -20,30 +20,43 @@
   <header class="top-bar">
     <div class="brand">NeoCasino</div>
     <nav class="top-nav">
-      <a href="#auth">Авторизация</a>
-      <a href="#dashboard">Личный кабинет</a>
-      <a href="#home">Главная</a>
-      <a href="#mechanics">Механика игр</a>
+      <button class="nav-link active" data-target="home">Главная</button>
+      <button class="nav-link" data-target="auth">Авторизация</button>
     </nav>
-    <div class="toggles">
-      <button class="mode-toggle" id="modeToggle" aria-label="Переключить тему">
-        <span class="toggle-icon">🌙</span>
-      </button>
-    </div>
+      <div class="header-controls">
+        <div class="user-controls hidden" id="userControls">
+          <button class="btn secondary dashboard-link" id="dashboardLink">Личный кабинет</button>
+          <div class="balance-menu">
+            <button class="balance-button" id="balanceButton" aria-haspopup="true" aria-expanded="false">
+              Баланс: <span id="balanceAmount">25 400₽</span>
+            </button>
+            <div class="balance-dropdown hidden" id="balanceDropdown">
+              <button class="dropdown-action" data-action="deposit">Пополнить</button>
+              <button class="dropdown-action" data-action="withdraw">Вывести</button>
+            </div>
+          </div>
+          <p class="balance-feedback hidden" id="balanceFeedback"></p>
+        </div>
+        <div class="toggles">
+          <button class="mode-toggle" id="modeToggle" aria-label="Переключить тему">
+            <span class="toggle-icon">🌙</span>
+          </button>
+        </div>
+      </div>
   </header>
 
   <main>
-    <section id="auth" class="page-block auth-page">
+    <section id="authPage" class="page-block auth-page hidden" data-page="auth">
       <div class="auth-card glassy">
         <h1>Добро пожаловать в NeoCasino</h1>
         <form class="auth-form">
           <label class="input-group">
             <span>Логин</span>
-            <input type="text" placeholder="Введите логин" />
+            <input type="text" name="login" placeholder="Введите логин" required />
           </label>
           <label class="input-group">
             <span>Пароль</span>
-            <input type="password" placeholder="Введите пароль" />
+            <input type="password" name="password" placeholder="Введите пароль" required />
           </label>
           <div class="auth-actions">
             <button type="submit" class="btn primary">Войти</button>
@@ -54,7 +67,7 @@
       </div>
     </section>
 
-    <section id="dashboard" class="page-block dashboard">
+    <section id="dashboard" class="page-block dashboard hidden" data-page="dashboard" data-requires-auth="true">
       <div class="dashboard-header">
         <div class="welcome">Добро пожаловать, <span class="accent">[Имя Игрока]</span></div>
         <div class="balance-card glassy">
@@ -206,7 +219,7 @@
       </div>
     </section>
 
-    <section id="home" class="page-block home">
+    <section id="home" class="page-block home" data-page="home">
       <div class="hero glassy">
         <div class="hero-content">
           <h1>NeoCasino — почувствуй азарт</h1>
@@ -232,65 +245,77 @@
       </div>
 
       <div class="game-grid">
-        <article class="game-card online">
-          <div class="game-icon roulette"></div>
-          <h3>Рулетка</h3>
+        <article class="game-card online" data-game="roulette">
+          <figure class="game-thumb">
+            <img
+              src="https://images.unsplash.com/photo-1518544889280-3df2397a7e67?auto=format&fit=crop&w=400&q=80"
+              alt="Стол с онлайн-рулеткой"
+              loading="lazy"
+            />
+          </figure>
+          <h3>Онлайн Рулетка</h3>
           <p class="rating">★ 4.8</p>
-          <button class="btn secondary">Играть</button>
+          <button class="btn secondary game-launch">Играть</button>
         </article>
-        <article class="game-card offline">
-          <div class="game-icon slot"></div>
+        <article class="game-card offline" data-game="blackjack">
+          <figure class="game-thumb">
+            <img
+              src="https://images.unsplash.com/photo-1542826438-1bf75a087352?auto=format&fit=crop&w=400&q=80"
+              alt="Игрок держит карты для блэкджека"
+              loading="lazy"
+            />
+          </figure>
+          <h3>Оффлайн Блэкджэк</h3>
+          <p class="rating">★ 4.7</p>
+          <button class="btn secondary game-launch">Играть</button>
+        </article>
+        <article class="game-card online">
+          <figure class="game-thumb">
+            <img
+              src="https://images.unsplash.com/photo-1619474446860-0e53e13d9a9f?auto=format&fit=crop&w=400&q=80"
+              alt="Яркие барабаны игрового автомата"
+              loading="lazy"
+            />
+          </figure>
           <h3>Fruit Spin</h3>
           <p class="rating">★ 4.5</p>
-          <button class="btn secondary">Играть</button>
-        </article>
-        <article class="game-card online">
-          <div class="game-icon cards"></div>
-          <h3>Blackjack Live</h3>
-          <p class="rating">★ 4.7</p>
-          <button class="btn secondary">Играть</button>
+          <button class="btn secondary" disabled>Скоро</button>
         </article>
         <article class="game-card offline">
-          <div class="game-icon crash"></div>
+          <figure class="game-thumb">
+            <img
+              src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=400&q=80"
+              alt="Неоновая вспышка в темном казино"
+              loading="lazy"
+            />
+          </figure>
           <h3>Neon Crash</h3>
           <p class="rating">★ 4.3</p>
-          <button class="btn secondary">Играть</button>
+          <button class="btn secondary" disabled>Скоро</button>
         </article>
         <article class="game-card online">
-          <div class="game-icon poker"></div>
+          <figure class="game-thumb">
+            <img
+              src="https://images.unsplash.com/photo-1533237264985-ee7a4c0873c1?auto=format&fit=crop&w=400&q=80"
+              alt="Игроки за покерным столом"
+              loading="lazy"
+            />
+          </figure>
           <h3>Turbo Poker</h3>
           <p class="rating">★ 4.6</p>
-          <button class="btn secondary">Играть</button>
+          <button class="btn secondary" disabled>Скоро</button>
         </article>
         <article class="game-card offline">
-          <div class="game-icon lottery"></div>
+          <figure class="game-thumb">
+            <img
+              src="https://images.unsplash.com/photo-1526682847805-7214b00af12c?auto=format&fit=crop&w=400&q=80"
+              alt="Сияющее колесо фортуны"
+              loading="lazy"
+            />
+          </figure>
           <h3>Lucky Wheel</h3>
           <p class="rating">★ 4.2</p>
-          <button class="btn secondary">Играть</button>
-        </article>
-      </div>
-    </section>
-
-    <section id="mechanics" class="page-block mechanics glassy">
-      <h2>Механика игр</h2>
-      <div class="mechanics-grid">
-        <article class="mechanic-card">
-          <h3>Оффлайн-игры</h3>
-          <p>Раунд стартует только после внесения ставки.</p>
-          <p class="example">Пример: слот-машина активируется, когда игрок делает ставку.</p>
-          <div class="fake-bets">
-            <span>Player_81 сделал ставку 250₽</span>
-            <span>LuckyFox сделал ставку 500₽</span>
-          </div>
-        </article>
-        <article class="mechanic-card">
-          <h3>Онлайн-игры</h3>
-          <p>Раунды запускаются по таймеру, независимо от ставок.</p>
-          <p class="example">Пример: Рулетка стартует каждые 60 секунд, ставки принимаются до запуска.</p>
-          <div class="fake-bets">
-            <span>User_234 сделал ставку 500₽</span>
-            <span>NeoQueen сделал ставку 150₽</span>
-          </div>
+          <button class="btn secondary" disabled>Скоро</button>
         </article>
       </div>
     </section>
@@ -316,6 +341,13 @@
       <span>🎉 Игрок LuckyFox выиграл 1200₽ в Fruit Spin!</span>
       <span>🔥 User_234 сделал ставку 500₽ в Рулетке!</span>
       <span>🏆 NeoQueen сорвала джекпот 3 400₽ в Turbo Poker!</span>
+    </div>
+  </div>
+
+  <div class="game-modal hidden" id="gameModal" role="dialog" aria-modal="true">
+    <div class="game-modal-content glassy">
+      <button class="modal-close" id="closeGameModal" aria-label="Закрыть окно">×</button>
+      <div class="game-modal-body" id="gameModalBody"></div>
     </div>
   </div>
 
