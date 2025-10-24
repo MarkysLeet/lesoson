@@ -48,6 +48,19 @@ const rouletteColumns = {
   black: document.getElementById("rouletteColumnBlack"),
   green: document.getElementById("rouletteColumnGreen"),
 };
+const rouletteHistoryTrack = document.getElementById("rouletteHistory");
+
+const rocketForm = document.getElementById("rocketForm");
+const rocketStatus = document.getElementById("rocketStatus");
+const rocketFeedback = document.getElementById("rocketFeedback");
+const rocketCountdown = document.getElementById("rocketCountdown");
+const rocketPhaseLabel = document.getElementById("rocketPhase");
+const rocketMultiplierLabel = document.getElementById("rocketMultiplier");
+const rocketScene = document.getElementById("rocketScene");
+const rocketCashoutButton = document.getElementById("rocketCashout");
+const rocketBetsList = document.getElementById("rocketBetsList");
+const rocketStartButton = document.getElementById("rocketStart");
+const rouletteWrapper = document.querySelector(".roulette-wrapper");
 
 const blackjackForm = document.getElementById("blackjackForm");
 const blackjackStatus = document.getElementById("blackjackStatus");
@@ -67,6 +80,9 @@ const ACCOUNTS_KEY = "neoCasinoAccounts";
 const CURRENT_USER_KEY = "neoCasinoCurrentUser";
 const ROULETTE_BET_DURATION = 15000;
 const ROULETTE_SPIN_DURATION = 6000;
+const ROULETTE_HISTORY_LIMIT = 12;
+const ROCKET_BET_DURATION = 15000;
+const ROCKET_COOLDOWN = 1800;
 
 const numberFormatter = new Intl.NumberFormat("ru-RU");
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
@@ -124,11 +140,23 @@ let rouletteFakeTimeout = null;
 let rouletteShuffleInterval = null;
 let rouletteRotation = 0;
 let roulettePlayerBet = null;
+let rouletteHistory = [];
 let blackjackDeck = [];
 let blackjackPlayerCards = [];
 let blackjackDealerCards = [];
 let blackjackStake = 0;
 let blackjackRoundActive = false;
+let rocketPhase = "idle";
+let rocketCycleActive = false;
+let rocketPhaseEndsAt = 0;
+let rocketCountdownInterval = null;
+let rocketPhaseTimeout = null;
+let rocketFakeTimeout = null;
+let rocketMultiplierInterval = null;
+let rocketCrashTimeout = null;
+let rocketCurrentMultiplier = 1;
+let rocketCrashMultiplier = 0;
+let rocketPlayerBet = null;
 
 const appState = {
   isAuthenticated: false,
@@ -355,9 +383,17 @@ function showPage(target) {
   if (target === "roulette") {
     appState.activeGame = "roulette";
     startRouletteCycle();
+    stopRocketCycle();
+  } else if (target === "rocket") {
+    appState.activeGame = "rocket";
+    startRocketCycle();
+    stopRouletteCycle();
   } else {
     if (appState.activeGame === "roulette") {
       stopRouletteCycle();
+    }
+    if (appState.activeGame === "rocket") {
+      stopRocketCycle();
     }
     appState.activeGame = target === "blackjack" ? "blackjack" : null;
   }
@@ -409,6 +445,26 @@ function appendRouletteBet({ name, stake, color, isPlayer = false }) {
       break;
     }
   }
+}
+
+function renderRouletteHistory() {
+  if (!rouletteHistoryTrack) return;
+  rouletteHistoryTrack.innerHTML = "";
+  rouletteHistory.forEach((color, index) => {
+    const node = document.createElement("span");
+    node.className = `roulette-history-item ${color}`;
+    node.title = `Раунд ${index + 1}: ${colorLabels[color]}`;
+    rouletteHistoryTrack.appendChild(node);
+  });
+}
+
+function pushRouletteHistory(color) {
+  if (!color) return;
+  rouletteHistory.unshift(color);
+  if (rouletteHistory.length > ROULETTE_HISTORY_LIMIT) {
+    rouletteHistory.length = ROULETTE_HISTORY_LIMIT;
+  }
+  renderRouletteHistory();
 }
 
 function scheduleFakeRouletteBet() {
@@ -501,6 +557,7 @@ function startRouletteSpinPhase() {
       rouletteWheel.style.transform = `rotate(${rouletteRotation}deg)`;
     });
   }
+  rouletteWrapper?.classList.add("is-spinning");
   clearInterval(rouletteShuffleInterval);
   rouletteShuffleInterval = setInterval(() => {
     if (rouletteNumber) {
@@ -521,6 +578,7 @@ function finishRouletteRound(result) {
   if (rouletteNumber) rouletteNumber.textContent = result.toString();
   const resultColor = getRouletteColor(result);
   const colorName = colorLabels[resultColor];
+  pushRouletteHistory(resultColor);
   if (rouletteStatus) {
     rouletteStatus.textContent =
       result === 0
@@ -530,6 +588,7 @@ function finishRouletteRound(result) {
   if (rouletteWheel) {
     rouletteWheel.classList.remove("spinning");
   }
+  rouletteWrapper?.classList.remove("is-spinning");
 
   const account = appState.currentAccount;
   if (account && roulettePlayerBet) {
@@ -580,6 +639,7 @@ function stopRouletteCycle() {
     rouletteWheel.classList.remove("spinning");
     rouletteWheel.style.removeProperty("transform");
   }
+  rouletteWrapper?.classList.remove("is-spinning");
   rouletteRotation = 0;
   if (rouletteCountdown)
     rouletteCountdown.textContent = (ROULETTE_BET_DURATION / 1000).toFixed(1);
@@ -596,6 +656,243 @@ function startRouletteCycle() {
   if (rouletteCycleActive) return;
   rouletteCycleActive = true;
   startRouletteBettingPhase();
+}
+
+function clearRocketBets() {
+  if (rocketBetsList) {
+    rocketBetsList.innerHTML = "";
+  }
+}
+
+function appendRocketBet({ name, stake, isPlayer = false }) {
+  if (!rocketBetsList) return null;
+  const item = document.createElement("li");
+  item.className = "rocket-bet";
+  if (isPlayer) {
+    item.classList.add("player");
+  }
+  const nickname = document.createElement("span");
+  nickname.textContent = name;
+  const amount = document.createElement("span");
+  amount.textContent = formatCurrency(stake);
+  item.append(nickname, amount);
+  rocketBetsList.appendChild(item);
+  while (rocketBetsList.children.length > 9) {
+    rocketBetsList.removeChild(rocketBetsList.firstElementChild);
+  }
+  return item;
+}
+
+function scheduleFakeRocketBet() {
+  clearTimeout(rocketFakeTimeout);
+  if (!rocketCycleActive || rocketPhase !== "betting") return;
+  rocketFakeTimeout = setTimeout(() => {
+    const fakeStake = Math.round(randomInt(4, 120) * 25);
+    const item = appendRocketBet({
+      name: randomChoice(fakeNames),
+      stake: fakeStake,
+    });
+    if (item) {
+      item.dataset.multiplier = (Math.random() * 4 + 1.2).toFixed(2);
+    }
+    scheduleFakeRocketBet();
+  }, randomInt(900, 2200));
+}
+
+function stopRocketFakeBets() {
+  clearTimeout(rocketFakeTimeout);
+  rocketFakeTimeout = null;
+}
+
+function updateRocketCountdown() {
+  if (!rocketCountdown) return;
+  if (rocketPhase !== "betting") {
+    rocketCountdown.textContent = "0.0";
+    return;
+  }
+  const remaining = Math.max(0, rocketPhaseEndsAt - Date.now());
+  rocketCountdown.textContent = (remaining / 1000).toFixed(1);
+}
+
+function setRocketPhaseLabel(phase) {
+  if (!rocketPhaseLabel) return;
+  const labels = {
+    betting: "Приём ставок",
+    launch: "Ракета взлетает",
+    cooldown: "Ожидание",
+  };
+  rocketPhaseLabel.textContent = labels[phase] ?? "Ожидание";
+}
+
+function updateRocketMultiplierDisplay(multiplier) {
+  if (!rocketMultiplierLabel) return;
+  rocketMultiplierLabel.textContent = multiplier.toFixed(2);
+}
+
+function stopRocketTimers() {
+  clearInterval(rocketCountdownInterval);
+  clearInterval(rocketMultiplierInterval);
+  clearTimeout(rocketPhaseTimeout);
+  clearTimeout(rocketFakeTimeout);
+  clearTimeout(rocketCrashTimeout);
+  rocketCountdownInterval = null;
+  rocketMultiplierInterval = null;
+  rocketPhaseTimeout = null;
+  rocketFakeTimeout = null;
+  rocketCrashTimeout = null;
+}
+
+function startRocketBettingPhase() {
+  stopRocketTimers();
+  rocketPhase = "betting";
+  rocketPhaseEndsAt = Date.now() + ROCKET_BET_DURATION;
+  setRocketPhaseLabel("betting");
+  rocketPlayerBet = null;
+  clearRocketBets();
+  hideFormFeedback(rocketFeedback);
+  rocketForm?.reset();
+  if (rocketStartButton) rocketStartButton.disabled = false;
+  if (rocketCashoutButton) rocketCashoutButton.disabled = true;
+  rocketCurrentMultiplier = 1;
+  rocketCrashMultiplier = 0;
+  updateRocketMultiplierDisplay(rocketCurrentMultiplier);
+  if (rocketScene) {
+    rocketScene.classList.remove("launching", "crashed");
+  }
+  if (rocketStatus)
+    rocketStatus.textContent = "Принимаем ставки. До запуска 15 секунд.";
+  updateRocketCountdown();
+  clearInterval(rocketCountdownInterval);
+  rocketCountdownInterval = setInterval(updateRocketCountdown, 100);
+  clearTimeout(rocketPhaseTimeout);
+  rocketPhaseTimeout = setTimeout(startRocketLaunchPhase, ROCKET_BET_DURATION);
+  scheduleFakeRocketBet();
+}
+
+function annotateRocketBets() {
+  if (!rocketBetsList) return;
+  Array.from(rocketBetsList.children).forEach((item) => {
+    if (item.classList.contains("player")) return;
+    if (item.dataset.resultApplied === "true") return;
+    const amount = item.querySelector("span:last-child");
+    const shouldCash = Math.random() > 0.55;
+    if (shouldCash) {
+      const multiplier = item.dataset.multiplier || (Math.random() * 3 + 1.2).toFixed(2);
+      if (amount) amount.textContent = `x${multiplier}`;
+      item.classList.add("cashed");
+    } else {
+      item.classList.add("lost");
+    }
+    item.dataset.resultApplied = "true";
+  });
+}
+
+function startRocketLaunchPhase() {
+  rocketPhase = "launch";
+  setRocketPhaseLabel("launch");
+  stopRocketFakeBets();
+  clearInterval(rocketCountdownInterval);
+  rocketCountdownInterval = null;
+  if (rocketCountdown) rocketCountdown.textContent = "0.0";
+  if (rocketStartButton) rocketStartButton.disabled = true;
+  if (rocketCashoutButton) rocketCashoutButton.disabled = !rocketPlayerBet;
+  if (rocketScene) {
+    rocketScene.classList.remove("crashed");
+    rocketScene.classList.add("launching");
+  }
+  hideFormFeedback(rocketFeedback);
+  rocketCurrentMultiplier = 1;
+  rocketCrashMultiplier = Number((Math.random() * 4.6 + 1.4).toFixed(2));
+  updateRocketMultiplierDisplay(rocketCurrentMultiplier);
+  if (rocketStatus) {
+    rocketStatus.textContent = rocketPlayerBet
+      ? "Ракета взлетает! Заберите выигрыш вовремя."
+      : "Ракета взлетает! Наблюдайте за множителем.";
+  }
+  const launchStartedAt = performance.now();
+  clearInterval(rocketMultiplierInterval);
+  rocketMultiplierInterval = setInterval(() => {
+    const elapsed = (performance.now() - launchStartedAt) / 1000;
+    const growth = 0.03 + elapsed * 0.045;
+    rocketCurrentMultiplier = Number(
+      (rocketCurrentMultiplier + growth).toFixed(2)
+    );
+    updateRocketMultiplierDisplay(rocketCurrentMultiplier);
+    if (rocketCurrentMultiplier >= rocketCrashMultiplier) {
+      crashRocket();
+    }
+  }, 110);
+  clearTimeout(rocketCrashTimeout);
+  rocketCrashTimeout = setTimeout(() => {
+    crashRocket();
+  }, 14000);
+}
+
+function crashRocket() {
+  if (rocketPhase !== "launch") return;
+  rocketPhase = "cooldown";
+  setRocketPhaseLabel("cooldown");
+  stopRocketTimers();
+  if (rocketScene) {
+    rocketScene.classList.remove("launching");
+    rocketScene.classList.add("crashed");
+  }
+  rocketCurrentMultiplier = Number(
+    Math.max(rocketCurrentMultiplier, rocketCrashMultiplier).toFixed(2)
+  );
+  updateRocketMultiplierDisplay(rocketCurrentMultiplier);
+  annotateRocketBets();
+  const account = appState.currentAccount;
+  let messageSuffix = "Новый раунд скоро начнётся.";
+  if (rocketPlayerBet) {
+    const { listItem, cashedOut } = rocketPlayerBet;
+    if (!cashedOut) {
+      if (listItem) listItem.classList.add("lost");
+      if (account) {
+        account.streak = 0;
+        updateDashboardData();
+        persistCurrentUser();
+      }
+      showFormFeedback(rocketFeedback, "Ракета взорвалась! Ставка не сыграла.");
+      messageSuffix = "Попробуйте снова в следующем раунде.";
+    } else if (rocketStatus) {
+      messageSuffix = "Ваш выигрыш сохранён.";
+    }
+    rocketPlayerBet = null;
+  }
+  if (rocketCashoutButton) rocketCashoutButton.disabled = true;
+  if (rocketStatus) {
+    rocketStatus.textContent = `Ракета взорвалась на x${rocketCurrentMultiplier.toFixed(
+      2
+    )}. ${messageSuffix}`;
+  }
+  rocketPhaseTimeout = setTimeout(() => {
+    if (!rocketCycleActive) return;
+    startRocketBettingPhase();
+  }, ROCKET_COOLDOWN);
+}
+
+function startRocketCycle() {
+  if (rocketCycleActive) return;
+  rocketCycleActive = true;
+  startRocketBettingPhase();
+}
+
+function stopRocketCycle() {
+  rocketCycleActive = false;
+  stopRocketTimers();
+  rocketPhase = "idle";
+  if (rocketScene) {
+    rocketScene.classList.remove("launching", "crashed");
+  }
+  if (rocketCountdown) rocketCountdown.textContent = (ROCKET_BET_DURATION / 1000).toFixed(1);
+  setRocketPhaseLabel("betting");
+  if (rocketStatus) rocketStatus.textContent = "Сделайте ставку и приготовьтесь к запуску.";
+  if (rocketMultiplierLabel) rocketMultiplierLabel.textContent = "1.00";
+  if (rocketCashoutButton) rocketCashoutButton.disabled = true;
+  rocketPlayerBet = null;
+  clearRocketBets();
+  hideFormFeedback(rocketFeedback);
 }
 
 function initializeBlackjackState() {
@@ -842,6 +1139,105 @@ function handleRouletteBet(event) {
   persistCurrentUser();
 }
 
+function handleRocketBet(event) {
+  event.preventDefault();
+  if (!rocketForm) return;
+  if (!appState.currentAccount) {
+    toggleAuthView("login");
+    showPage("auth");
+    showFormFeedback(rocketFeedback, "Авторизуйтесь, чтобы сделать ставку.");
+    return;
+  }
+
+  if (rocketPhase !== "betting") {
+    showFormFeedback(rocketFeedback, "Ставки закрыты. Подождите новый запуск.");
+    return;
+  }
+
+  if (rocketPlayerBet) {
+    showFormFeedback(rocketFeedback, "Вы уже сделали ставку в этом раунде.");
+    return;
+  }
+
+  const formData = new FormData(rocketForm);
+  const stake = Number(formData.get("stake"));
+
+  if (!Number.isFinite(stake) || stake < 100) {
+    showFormFeedback(rocketFeedback, "Минимальная ставка 100₽.");
+    return;
+  }
+
+  const account = appState.currentAccount;
+  if (!account) return;
+
+  if (account.balance < stake) {
+    showFormFeedback(rocketFeedback, "Недостаточно средств на балансе.");
+    return;
+  }
+
+  account.balance -= stake;
+  const item = appendRocketBet({
+    name: account.nickname || "Вы",
+    stake,
+    isPlayer: true,
+  });
+  rocketPlayerBet = {
+    stake,
+    listItem: item || null,
+    cashedOut: false,
+  };
+  if (rocketStatus)
+    rocketStatus.textContent = "Ставка принята. Готовьтесь к старту.";
+  if (rocketStartButton) rocketStartButton.disabled = true;
+  showFormFeedback(rocketFeedback, "Ставка принята!", true);
+  updateBalanceDisplays();
+  gainExperience(2);
+  persistCurrentUser();
+}
+
+function handleRocketCashout() {
+  if (rocketPhase !== "launch") {
+    showFormFeedback(
+      rocketFeedback,
+      "Забрать выигрыш можно только во время полёта."
+    );
+    return;
+  }
+  if (!rocketPlayerBet || rocketPlayerBet.cashedOut) {
+    showFormFeedback(rocketFeedback, "У вас нет активной ставки для вывода.");
+    return;
+  }
+  const account = appState.currentAccount;
+  if (!account) return;
+
+  const multiplier = Math.max(1.01, rocketCurrentMultiplier);
+  const winnings = Math.round(rocketPlayerBet.stake * multiplier);
+  rocketPlayerBet.cashedOut = true;
+  rocketPlayerBet.cashoutMultiplier = multiplier;
+  rocketPlayerBet.winnings = winnings;
+  if (rocketPlayerBet.listItem) {
+    rocketPlayerBet.listItem.classList.add("cashed");
+    const amount = rocketPlayerBet.listItem.querySelector("span:last-child");
+    if (amount) amount.textContent = `x${multiplier.toFixed(2)}`;
+  }
+  account.balance += winnings;
+  account.wins = Number(account.wins ?? 0) + 1;
+  account.favouriteGame = "Neo Rocket";
+  account.streak = Number(account.streak ?? 0) + 1;
+  gainExperience(Math.min(20, Math.ceil(multiplier * 2)));
+  updateBalanceDisplays();
+  updateDashboardData();
+  persistCurrentUser();
+  if (rocketStatus)
+    rocketStatus.textContent = `Вы успешно вышли на x${multiplier.toFixed(2)}.`;
+  showFormFeedback(
+    rocketFeedback,
+    `Вы забрали ${formatCurrency(winnings - rocketPlayerBet.stake)}!`,
+    true
+  );
+  if (rocketCashoutButton) rocketCashoutButton.disabled = true;
+}
+
 function handleDeposit() {
   if (!appState.isAuthenticated || !appState.currentAccount) {
     showFeedback("Авторизуйтесь, чтобы управлять балансом.");
@@ -991,6 +1387,7 @@ function handleLogout() {
   appState.activeGame = null;
   clearCurrentUser();
   stopRouletteCycle();
+  stopRocketCycle();
   hideDropdown();
   setAuthenticatedState(false);
   updateDashboardData();
@@ -1014,6 +1411,8 @@ function openGame(gameKey) {
     showPage("roulette");
   } else if (gameKey === "blackjack") {
     showPage("blackjack");
+  } else if (gameKey === "rocket") {
+    showPage("rocket");
   }
 }
 
@@ -1136,6 +1535,10 @@ dashboardLink?.addEventListener("click", () => {
   showPage("dashboard");
 });
 
+brandButton?.addEventListener("click", () => {
+  showPage("home");
+});
+
 rouletteForm?.addEventListener("submit", handleRouletteBet);
 blackjackForm?.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -1158,6 +1561,9 @@ blackjackForm?.addEventListener("submit", (event) => {
   }
   startBlackjackRound(stake);
 });
+
+rocketForm?.addEventListener("submit", handleRocketBet);
+rocketCashoutButton?.addEventListener("click", handleRocketCashout);
 
 blackjackHitButton?.addEventListener("click", handleBlackjackHit);
 blackjackStandButton?.addEventListener("click", handleBlackjackStand);
@@ -1202,6 +1608,8 @@ initializeAuth();
 updateDashboardData();
 updateNavState();
 resetRouletteUI();
+renderRouletteHistory();
+stopRocketCycle();
 initializeBlackjackState();
 showPage("home");
 
