@@ -6,6 +6,8 @@ const switchOptions = document.querySelectorAll(".switch-option");
 const gameCards = document.querySelectorAll(".game-card");
 const gameLaunchButtons = document.querySelectorAll(".game-launch");
 const tickerTrack = document.getElementById("tickerTrack");
+const liveTicker = document.querySelector(".live-ticker");
+const liveTickerToggle = document.getElementById("liveTickerToggle");
 const navLinks = document.querySelectorAll(".nav-link");
 const pageSections = document.querySelectorAll("[data-page]");
 const userControls = document.getElementById("userControls");
@@ -27,6 +29,10 @@ const profileFavourite = document.getElementById("profileFavourite");
 const profileVip = document.getElementById("profileVip");
 const profileVisit = document.getElementById("profileVisit");
 const profileStreak = document.getElementById("profileStreak");
+const profileEditForm = document.getElementById("profileEditForm");
+const profileEditFeedback = document.getElementById("profileEditFeedback");
+const profileEditNickname = document.getElementById("profileEditNickname");
+const profileEditEmail = document.getElementById("profileEditEmail");
 
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
@@ -148,7 +154,11 @@ function loadAccounts() {
     const stored = localStorage.getItem(ACCOUNTS_KEY);
     if (!stored) return [];
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item) => {
+      ensureAccountDefaults(item);
+      return item;
+    });
   } catch (error) {
     console.warn("Не удалось загрузить аккаунты", error);
     return [];
@@ -198,6 +208,16 @@ function formatDateTime(value) {
     return dateFormatter.format(new Date(value));
   } catch (error) {
     return "—";
+  }
+}
+
+function ensureAccountDefaults(account) {
+  if (!account || typeof account !== "object") return;
+  if (typeof account.preferences !== "object" || account.preferences === null) {
+    account.preferences = {};
+  }
+  if (typeof account.preferences.liveTickerEnabled !== "boolean") {
+    account.preferences.liveTickerEnabled = true;
   }
 }
 
@@ -267,6 +287,9 @@ function updateProfile() {
     profileVip.textContent = "Новичок";
     profileVisit.textContent = "—";
     profileStreak.textContent = "0";
+    if (profileEditNickname) profileEditNickname.value = "";
+    if (profileEditEmail) profileEditEmail.value = "";
+    hideFormFeedback(profileEditFeedback);
     return;
   }
 
@@ -286,12 +309,44 @@ function updateProfile() {
   profileVip.textContent = account.vip ?? "Новичок";
   profileVisit.textContent = formatDateTime(account.lastLogin);
   profileStreak.textContent = numberFormatter.format(account.streak ?? 0);
+  if (profileEditNickname) profileEditNickname.value = account.nickname;
+  if (profileEditEmail) profileEditEmail.value = account.email ?? "";
+}
+
+function getLiveTickerEnabled() {
+  const account = appState.currentAccount;
+  if (!account) return true;
+  const { preferences } = account;
+  if (!preferences) return true;
+  return preferences.liveTickerEnabled !== false;
+}
+
+function setLiveTickerVisible(isVisible) {
+  if (!liveTicker) return;
+  liveTicker.classList.toggle("hidden", !isVisible);
+  if (isVisible) {
+    liveTicker.removeAttribute("aria-hidden");
+  } else {
+    liveTicker.setAttribute("aria-hidden", "true");
+  }
+  if (tickerTrack) {
+    tickerTrack.style.animationPlayState = isVisible ? "running" : "paused";
+  }
+}
+
+function updateLiveTickerUI() {
+  const enabled = getLiveTickerEnabled();
+  if (liveTickerToggle) {
+    liveTickerToggle.checked = enabled;
+  }
+  setLiveTickerVisible(enabled);
 }
 
 function updateDashboardData() {
   updateWelcome();
   updateBalanceDisplays();
   updateProfile();
+  updateLiveTickerUI();
 }
 
 function showFeedback(message) {
@@ -303,6 +358,21 @@ function showFeedback(message) {
   setTimeout(() => {
     toast.remove();
   }, 4000);
+}
+
+function handleLiveTickerToggleChange() {
+  const isEnabled = Boolean(liveTickerToggle?.checked);
+  if (!appState.currentAccount) {
+    if (liveTickerToggle) liveTickerToggle.checked = true;
+    setLiveTickerVisible(true);
+    showFeedback("Авторизуйтесь, чтобы управлять живой лентой.");
+    return;
+  }
+  ensureAccountDefaults(appState.currentAccount);
+  appState.currentAccount.preferences.liveTickerEnabled = isEnabled;
+  setLiveTickerVisible(isEnabled);
+  persistCurrentUser();
+  showFeedback(isEnabled ? "Живая лента включена." : "Живая лента скрыта.");
 }
 
 function setActiveNav(target) {
@@ -900,6 +970,14 @@ function handleRouletteBet(event) {
   if (rouletteStatus)
     rouletteStatus.textContent = "Ставка принята. Ожидайте спина.";
   showFormFeedback(rouletteFeedback, "Ставка принята!", true);
+  const colorName = colorLabels[color] ?? color;
+  showFeedback(
+    `Ставка ${formatCurrency(stake)} на ${
+      typeof colorName === "string"
+        ? colorName.charAt(0).toUpperCase() + colorName.slice(1)
+        : colorName
+    } принята.`
+  );
   updateBalanceDisplays();
   persistCurrentUser();
 }
@@ -916,6 +994,58 @@ function handleDeposit() {
   updateDashboardData();
   persistCurrentUser();
   hideDropdown();
+}
+
+function handleProfileUpdate(event) {
+  event.preventDefault();
+  if (!profileEditForm) return;
+  hideFormFeedback(profileEditFeedback);
+  if (!appState.currentAccount) {
+    showFeedback("Авторизуйтесь, чтобы изменить профиль.");
+    return;
+  }
+
+  const formData = new FormData(profileEditForm);
+  const nickname = formData.get("nickname")?.toString().trim();
+  const emailRaw = formData.get("email")?.toString().trim();
+  const email = emailRaw ? emailRaw.toLowerCase() : "";
+
+  if (!nickname || nickname.length < 3) {
+    showFormFeedback(
+      profileEditFeedback,
+      "Никнейм должен содержать не менее 3 символов."
+    );
+    return;
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showFormFeedback(profileEditFeedback, "Введите корректную почту.");
+    return;
+  }
+
+  const account = appState.currentAccount;
+  const nicknameLower = nickname.toLowerCase();
+  const duplicate = appState.accounts.some(
+    (item) =>
+      item.id !== account.id &&
+      (item.email === email || item.nickname.toLowerCase() === nicknameLower)
+  );
+
+  if (duplicate) {
+    showFormFeedback(
+      profileEditFeedback,
+      "Такие данные уже используются другим игроком."
+    );
+    return;
+  }
+
+  account.nickname = nickname;
+  account.email = email;
+  ensureAccountDefaults(account);
+  updateDashboardData();
+  persistCurrentUser();
+  showFormFeedback(profileEditFeedback, "Профиль обновлён.", true);
+  showFeedback("Профиль успешно обновлён.");
 }
 
 function handleWithdraw() {
@@ -953,6 +1083,7 @@ function handleLogin(event) {
     return;
   }
 
+  ensureAccountDefaults(account);
   account.lastLogin = new Date().toISOString();
   appState.currentAccount = account;
   appState.isAuthenticated = true;
@@ -1031,8 +1162,10 @@ function handleRegister(event) {
     level: 1,
     experience: 0,
     lastLogin: null,
+    preferences: { liveTickerEnabled: true },
   };
 
+  ensureAccountDefaults(newAccount);
   appState.accounts.push(newAccount);
   saveAccounts();
   registerForm.reset();
@@ -1085,6 +1218,7 @@ function initializeAuth() {
   if (storedId) {
     const account = appState.accounts.find((item) => item.id === storedId);
     if (account) {
+      ensureAccountDefaults(account);
       appState.currentAccount = account;
       appState.isAuthenticated = true;
       setAuthenticatedState(true);
@@ -1153,7 +1287,9 @@ backButtons.forEach((button) => {
 
 loginForm?.addEventListener("submit", handleLogin);
 registerForm?.addEventListener("submit", handleRegister);
+profileEditForm?.addEventListener("submit", handleProfileUpdate);
 logoutButton?.addEventListener("click", handleLogout);
+liveTickerToggle?.addEventListener("change", handleLiveTickerToggleChange);
 
 authSwitchButtons.forEach((button) => {
   button.addEventListener("click", () => {

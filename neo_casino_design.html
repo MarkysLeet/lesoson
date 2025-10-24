@@ -179,6 +179,25 @@
                 <p>Серия побед: <span id="profileStreak">0</span></p>
               </article>
             </div>
+            <div class="profile-settings-card">
+              <h3>Настройки профиля</h3>
+              <form id="profileEditForm" class="profile-edit-form" autocomplete="off">
+                <div class="profile-edit-grid">
+                  <label class="input-group">
+                    <span>Никнейм</span>
+                    <input type="text" name="nickname" id="profileEditNickname" minlength="3" required />
+                  </label>
+                  <label class="input-group">
+                    <span>Почта</span>
+                    <input type="email" name="email" id="profileEditEmail" required />
+                  </label>
+                </div>
+                <div class="profile-edit-actions">
+                  <button type="submit" class="btn primary">Сохранить изменения</button>
+                </div>
+                <p class="form-feedback hidden" id="profileEditFeedback"></p>
+              </form>
+            </div>
           </div>
 
           <div class="tab-content" id="security">
@@ -204,6 +223,11 @@
           <div class="tab-content" id="notifications">
             <h2>Настройки уведомлений</h2>
             <div class="notification-list">
+              <label class="toggle">
+                <span>Живая лента</span>
+                <input type="checkbox" id="liveTickerToggle" checked />
+                <span class="slider"></span>
+              </label>
               <label class="toggle">
                 <span>Промо-акции и бонусы</span>
                 <input type="checkbox" checked />
@@ -419,18 +443,20 @@
             </label>
             <fieldset class="bet-choices">
               <legend>Выбор цвета</legend>
-              <label>
-                <input type="radio" name="color" value="red" required />
-                <span class="bet-chip red">Красное</span>
-              </label>
-              <label>
-                <input type="radio" name="color" value="black" />
-                <span class="bet-chip black">Чёрное</span>
-              </label>
-              <label>
-                <input type="radio" name="color" value="green" />
-                <span class="bet-chip green">Зелёное</span>
-              </label>
+              <div class="bet-choice-row">
+                <label class="bet-choice">
+                  <input type="radio" name="color" value="red" required />
+                  <span class="bet-button red">Красное</span>
+                </label>
+                <label class="bet-choice">
+                  <input type="radio" name="color" value="black" />
+                  <span class="bet-button black">Чёрное</span>
+                </label>
+                <label class="bet-choice">
+                  <input type="radio" name="color" value="green" />
+                  <span class="bet-button green">Зелёное</span>
+                </label>
+              </div>
             </fieldset>
             <button type="submit" class="btn primary" id="rouletteStart">Сделать ставку</button>
           </form>
