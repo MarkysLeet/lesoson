@@ -49,6 +49,7 @@ const rouletteColumns = {
   green: document.getElementById("rouletteColumnGreen"),
 };
 const rouletteHistoryTrack = document.getElementById("rouletteHistory");
+const roulettePointer = document.getElementById("roulettePointer");
 
 const rouletteWrapper = document.querySelector(".roulette-wrapper");
 
@@ -71,6 +72,8 @@ const CURRENT_USER_KEY = "neoCasinoCurrentUser";
 const ROULETTE_BET_DURATION = 15000;
 const ROULETTE_SPIN_DURATION = 6000;
 const ROULETTE_HISTORY_LIMIT = 12;
+const ROULETTE_SEGMENT_ANGLE = 360 / 37;
+const ROULETTE_HALF_SEGMENT = ROULETTE_SEGMENT_ANGLE / 2;
 const numberFormatter = new Intl.NumberFormat("ru-RU");
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
   day: "2-digit",
@@ -417,6 +420,7 @@ function appendRouletteBet({ name, stake, color, isPlayer = false }) {
 function renderRouletteHistory() {
   if (!rouletteHistoryTrack) return;
   rouletteHistoryTrack.innerHTML = "";
+  const fragment = document.createDocumentFragment();
   rouletteHistory.forEach((color, index) => {
     const node = document.createElement("span");
     node.className = `roulette-history-item ${color}`;
@@ -424,8 +428,9 @@ function renderRouletteHistory() {
     node.textContent = label.charAt(0).toUpperCase();
     node.title = `Раунд ${index + 1}: ${label}`;
     node.setAttribute("aria-label", `Раунд ${index + 1}: ${label}`);
-    rouletteHistoryTrack.appendChild(node);
+    fragment.appendChild(node);
   });
+  rouletteHistoryTrack.appendChild(fragment);
 }
 
 function pushRouletteHistory(color) {
@@ -435,6 +440,27 @@ function pushRouletteHistory(color) {
     rouletteHistory.length = ROULETTE_HISTORY_LIMIT;
   }
   renderRouletteHistory();
+}
+
+function setRoulettePointerColor(color) {
+  if (!roulettePointer) return;
+  roulettePointer.classList.remove("red", "black", "green");
+  if (color && ["red", "black", "green"].includes(color)) {
+    roulettePointer.classList.add(color);
+    roulettePointer.setAttribute("data-color", color);
+    const label = colorLabels[color] ?? color;
+    const formattedLabel =
+      typeof label === "string"
+        ? label.charAt(0).toUpperCase() + label.slice(1)
+        : String(label);
+    roulettePointer.setAttribute(
+      "aria-label",
+      `Текущий результат: ${formattedLabel}`
+    );
+  } else {
+    roulettePointer.removeAttribute("data-color");
+    roulettePointer.removeAttribute("aria-label");
+  }
 }
 
 function scheduleFakeRouletteBet() {
@@ -522,7 +548,13 @@ function startRouletteSpinPhase() {
   const result = randomInt(0, 36);
   if (rouletteWheel) {
     rouletteWheel.classList.add("spinning");
-    rouletteRotation += randomInt(4, 6) * 360 + randomInt(0, 359);
+    const spins = randomInt(4, 6) * 360;
+    const targetAngle =
+      (result * ROULETTE_SEGMENT_ANGLE + ROULETTE_HALF_SEGMENT) % 360;
+    const normalizedCurrent = ((rouletteRotation % 360) + 360) % 360;
+    const desiredFinal = (360 - targetAngle + 360) % 360;
+    const deltaToDesired = (desiredFinal - normalizedCurrent + 360) % 360;
+    rouletteRotation += spins + deltaToDesired;
     requestAnimationFrame(() => {
       rouletteWheel.style.transform = `rotate(${rouletteRotation}deg)`;
     });
@@ -549,6 +581,7 @@ function finishRouletteRound(result) {
   const resultColor = getRouletteColor(result);
   const colorName = colorLabels[resultColor];
   pushRouletteHistory(resultColor);
+  setRoulettePointerColor(resultColor);
   if (rouletteStatus) {
     rouletteStatus.textContent =
       result === 0
@@ -557,6 +590,8 @@ function finishRouletteRound(result) {
   }
   if (rouletteWheel) {
     rouletteWheel.classList.remove("spinning");
+    rouletteRotation = ((rouletteRotation % 360) + 360) % 360;
+    rouletteWheel.style.transform = `rotate(${rouletteRotation}deg)`;
   }
   rouletteWrapper?.classList.remove("is-spinning");
 
@@ -593,10 +628,6 @@ function finishRouletteRound(result) {
   clearTimeout(roulettePhaseTimeout);
   roulettePhaseTimeout = setTimeout(() => {
     if (!rouletteCycleActive) return;
-    if (rouletteWheel) {
-      rouletteRotation %= 360;
-      rouletteWheel.style.removeProperty("transform");
-    }
     startRouletteBettingPhase();
   }, 1600);
 }
@@ -618,6 +649,7 @@ function stopRouletteCycle() {
   if (rouletteNumber) rouletteNumber.textContent = "-";
   if (rouletteStartButton) rouletteStartButton.disabled = false;
   roulettePlayerBet = null;
+  setRoulettePointerColor(null);
   clearRouletteBoard();
   hideFormFeedback(rouletteFeedback);
 }

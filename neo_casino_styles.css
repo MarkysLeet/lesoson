@@ -975,7 +975,7 @@ body.dark-mode .game-card {
 }
 
 #rouletteGame .game-body {
-  grid-template-columns: minmax(400px, 2.1fr) minmax(240px, 0.9fr);
+  grid-template-columns: minmax(380px, 1.6fr) minmax(300px, 1.4fr);
   align-items: stretch;
 }
 
@@ -998,7 +998,7 @@ body.dark-mode .game-card {
 
 .roulette-stage {
   background: rgba(81, 192, 255, 0.12);
-  padding: 28px 32px 32px;
+  padding: 24px 28px 30px;
   display: grid;
   gap: 20px;
   place-items: center;
@@ -1006,7 +1006,7 @@ body.dark-mode .game-card {
 
 .roulette-wrapper {
   position: relative;
-  width: min(460px, 100%);
+  width: min(420px, 100%);
   aspect-ratio: 1 / 1;
   display: grid;
   place-items: center;
@@ -1086,8 +1086,24 @@ body.dark-mode .game-card {
   height: 0;
   border-left: 18px solid transparent;
   border-right: 18px solid transparent;
-  border-top: 32px solid #f5c869;
-  filter: drop-shadow(0 12px 22px rgba(245, 200, 105, 0.45));
+  border-top: 32px solid var(--roulette-pointer-color, #f5c869);
+  filter: drop-shadow(0 12px 22px rgba(245, 200, 105, 0.35));
+  transition: border-top-color 0.4s ease, filter 0.4s ease;
+}
+
+.roulette-pointer.red {
+  --roulette-pointer-color: #ff5f72;
+  filter: drop-shadow(0 12px 22px rgba(255, 95, 114, 0.45));
+}
+
+.roulette-pointer.black {
+  --roulette-pointer-color: #2b3041;
+  filter: drop-shadow(0 12px 22px rgba(43, 48, 65, 0.55));
+}
+
+.roulette-pointer.green {
+  --roulette-pointer-color: #32c477;
+  filter: drop-shadow(0 12px 22px rgba(50, 196, 119, 0.45));
 }
 
 .roulette-phase,
@@ -1156,10 +1172,11 @@ body.dark-mode .game-card {
 }
 
 .roulette-history-track {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+  display: flex;
+  align-items: center;
   gap: 12px;
-  justify-content: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .roulette-history-item {
@@ -1168,6 +1185,7 @@ body.dark-mode .game-card {
   justify-content: center;
   width: 44px;
   height: 44px;
+  flex: 0 0 44px;
   border-radius: 14px;
   font-weight: 700;
   font-size: 15px;
