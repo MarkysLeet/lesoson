@@ -315,6 +315,28 @@ main {
   text-align: center;
 }
 
+.auth-views {
+  display: grid;
+  gap: 32px;
+}
+
+.auth-form-header {
+  text-align: left;
+  display: grid;
+  gap: 6px;
+}
+
+.auth-form-header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.auth-form-header p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
 .auth-card h1 {
   font-size: 32px;
   margin-bottom: 32px;
@@ -324,6 +346,10 @@ main {
 .auth-form {
   display: grid;
   gap: 24px;
+}
+
+.auth-switch {
+  font-size: 15px;
 }
 
 .input-group {
@@ -345,6 +371,38 @@ main {
   color: #fff;
   font-size: 16px;
   transition: border var(--transition), box-shadow var(--transition);
+}
+
+.rules-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.rules-check input {
+  margin-top: 4px;
+}
+
+.rules-check span {
+  flex: 1;
+}
+
+.form-feedback {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(214, 38, 69, 0.18);
+  color: #ff8a9f;
+  text-align: left;
+  font-size: 14px;
+}
+
+.form-feedback.success {
+  background: rgba(81, 192, 255, 0.18);
+  color: var(--accent-blue);
 }
 
 .input-group input:focus {
@@ -818,59 +876,121 @@ body.dark-mode .game-card {
   font-weight: 600;
 }
 
-.game-modal {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  background: rgba(9, 18, 40, 0.55);
-  backdrop-filter: blur(8px);
-  z-index: 120;
+/* game modal styles removed in favour of полноценные страницы */
+
+.game-page {
+  padding: 32px 56px 96px;
 }
 
-.game-modal-content {
-  position: relative;
-  width: min(540px, 92vw);
-  padding: 36px;
+.game-layout {
+  display: grid;
+  gap: 32px;
+  padding: 32px;
   color: #fff;
 }
 
-.game-modal-body {
+.game-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.game-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.game-title h2 {
+  margin: 0;
+}
+
+.game-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 28px;
+  align-items: start;
+}
+
+.game-visual {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.game-visual img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.game-controls {
   display: grid;
   gap: 20px;
 }
 
-.modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  border: none;
-  background: transparent;
-  color: #fff;
-  font-size: 28px;
-  cursor: pointer;
-  transition: transform var(--transition), color var(--transition);
+.bet-form {
+  display: grid;
+  gap: 18px;
 }
 
-.modal-close:hover {
-  transform: scale(1.1);
-  color: var(--accent-gold);
+.bet-choices {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(81, 192, 255, 0.35);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
 }
 
-.game-description {
-  margin: 0;
+.bet-choices legend {
+  padding: 0 8px;
+  font-size: 15px;
   color: var(--text-muted);
 }
 
-.roulette-panel {
+.bet-choices label {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 18px 22px;
-  border-radius: var(--radius-md);
-  background: rgba(81, 192, 255, 0.18);
+  gap: 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.bet-choices input[type="radio"] {
+  accent-color: #ff405f;
+}
+
+.bet-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #fff;
+  box-shadow: var(--shadow-soft);
+  font-size: 15px;
+}
+
+.bet-chip.red {
+  background: linear-gradient(135deg, #ff5f72, #ff2748);
+}
+
+.bet-chip.black {
+  background: linear-gradient(135deg, #2d2f3a, #0d0f18);
+}
+
+.bet-chip.green {
+  background: linear-gradient(135deg, #3ccf72, #1d7f49);
+}
+
+.game-status {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .roulette-number {
@@ -882,6 +1002,61 @@ body.dark-mode .game-card {
 }
 
 .roulette-status {
+  margin: 0;
+  font-size: 16px;
+  color: #fff;
+}
+
+.other-bets {
+  background: rgba(81, 192, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.other-bets h3 {
+  margin: 0;
+}
+
+.other-bets-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.other-bets-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(9, 18, 40, 0.55);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+}
+
+.other-bets-list span {
+  font-weight: 600;
+}
+
+.game-controls.blackjack {
+  display: grid;
+  gap: 20px;
+}
+
+.blackjack-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.blackjack-actions .btn {
+  width: 100%;
+}
+
+.blackjack-status {
   margin: 0;
   font-size: 16px;
   color: #fff;
@@ -928,17 +1103,6 @@ body.dark-mode .game-card {
   color: var(--text-muted);
 }
 
-.blackjack-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.blackjack-status {
-  margin: 0;
-  font-weight: 600;
-  color: var(--accent-gold);
-}
 
 .footer {
   display: grid;
@@ -1075,6 +1239,12 @@ body.dark-mode .ticker-track span::before {
   .auth-card {
     padding: 32px 24px;
   }
+  .game-page {
+    padding: 24px 20px 96px;
+  }
+  .game-layout {
+    padding: 24px;
+  }
   .game-grid {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
@@ -1085,6 +1255,9 @@ body.dark-mode .ticker-track span::before {
 
 @media (max-width: 520px) {
   .auth-actions {
+    grid-template-columns: 1fr;
+  }
+  .blackjack-actions {
     grid-template-columns: 1fr;
   }
   .hero-actions {
