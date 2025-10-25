@@ -818,8 +818,15 @@ function finishRouletteRound(result) {
   }
   if (rouletteWheel) {
     rouletteWheel.classList.remove("spinning");
-    rouletteRotation = ((rouletteRotation % 360) + 360) % 360;
+    const normalizedRotation = ((rouletteRotation % 360) + 360) % 360;
+    rouletteRotation = normalizedRotation;
+    const previousTransition = rouletteWheel.style.transition;
+    rouletteWheel.style.transition = "none";
     rouletteWheel.style.transform = `rotate(${rouletteRotation}deg)`;
+    // Force a reflow so the wheel keeps its final pose without animating again
+    // before restoring the transition for the next spin.
+    void rouletteWheel.offsetWidth;
+    rouletteWheel.style.transition = previousTransition;
   }
   rouletteWrapper?.classList.remove("is-spinning");
 
