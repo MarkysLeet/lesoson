@@ -1223,7 +1223,7 @@ body.dark-mode .game-card {
   border-radius: 50%;
   background:
     conic-gradient(#27c870 0deg 9.73deg, transparent 9.73deg 360deg),
-    repeating-conic-gradient(#ff5f72 0deg 9.73deg, #121624 9.73deg 19.46deg);
+    repeating-conic-gradient(#121624 0deg 9.73deg, #ff5f72 9.73deg 19.46deg);
   transform: rotate(-90deg);
   box-shadow: inset 0 0 20px rgba(4, 6, 13, 0.65);
 }
