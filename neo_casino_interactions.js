@@ -88,12 +88,13 @@ const brandButton = document.querySelector(".brand[data-target='home']");
 
 const ACCOUNTS_KEY = "neoCasinoAccounts";
 const CURRENT_USER_KEY = "neoCasinoCurrentUser";
-const ROULETTE_BET_DURATION = 15000;
+const ROULETTE_BET_DURATION = 18000;
 const ROULETTE_SPIN_DURATION = 6000;
 const ROULETTE_HISTORY_LIMIT = 12;
 const GAME_HISTORY_LIMIT = 20;
 const ROULETTE_SEGMENT_ANGLE = 360 / 37;
 const ROULETTE_HALF_SEGMENT = ROULETTE_SEGMENT_ANGLE / 2;
+const ROULETTE_BET_SECONDS = Math.round(ROULETTE_BET_DURATION / 1000);
 const numberFormatter = new Intl.NumberFormat("ru-RU");
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
   day: "2-digit",
@@ -749,7 +750,7 @@ function startRouletteBettingPhase() {
   if (rouletteStartButton) rouletteStartButton.disabled = false;
   if (rouletteNumber) rouletteNumber.textContent = "-";
   if (rouletteStatus)
-    rouletteStatus.textContent = "Ставки открыты. У вас 15 секунд.";
+    rouletteStatus.textContent = `Ставки открыты. У вас ${ROULETTE_BET_SECONDS} секунд.`;
   if (rouletteWheel) {
     rouletteWheel.classList.remove("spinning");
   }
@@ -780,7 +781,7 @@ function startRouletteSpinPhase() {
     const targetAngle =
       (result * ROULETTE_SEGMENT_ANGLE + ROULETTE_HALF_SEGMENT) % 360;
     const normalizedCurrent = ((rouletteRotation % 360) + 360) % 360;
-    const desiredFinal = (360 - targetAngle + 360) % 360;
+    const desiredFinal = ((90 - targetAngle) % 360 + 360) % 360;
     const deltaToDesired = (desiredFinal - normalizedCurrent + 360) % 360;
     rouletteRotation += spins + deltaToDesired;
     requestAnimationFrame(() => {
