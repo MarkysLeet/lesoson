@@ -32,7 +32,18 @@ const profileStreak = document.getElementById("profileStreak");
 const profileEditForm = document.getElementById("profileEditForm");
 const profileEditFeedback = document.getElementById("profileEditFeedback");
 const profileEditNickname = document.getElementById("profileEditNickname");
-const profileEditEmail = document.getElementById("profileEditEmail");
+const securityEmailValue = document.getElementById("securityEmailValue");
+const gameHistoryList = document.getElementById("gameHistoryList");
+const historyRefreshButton = document.getElementById("historyRefreshButton");
+const changePasswordButton = document.getElementById("changePasswordButton");
+const changeEmailButton = document.getElementById("changeEmailButton");
+const passwordModal = document.getElementById("passwordModal");
+const emailModal = document.getElementById("emailModal");
+const passwordChangeForm = document.getElementById("passwordChangeForm");
+const emailChangeForm = document.getElementById("emailChangeForm");
+const passwordFeedback = document.getElementById("passwordFeedback");
+const emailFeedback = document.getElementById("emailFeedback");
+const modalCloseButtons = document.querySelectorAll("[data-close-modal]");
 
 const loginForm = document.getElementById("loginForm");
 const registerForm = document.getElementById("registerForm");
@@ -47,6 +58,7 @@ const rouletteStatus = document.getElementById("rouletteStatus");
 const rouletteFeedback = document.getElementById("rouletteFeedback");
 const rouletteStartButton = document.getElementById("rouletteStart");
 const rouletteWheel = document.getElementById("rouletteWheel");
+const rouletteStakeInput = document.getElementById("rouletteStake");
 const rouletteCountdown = document.getElementById("rouletteCountdown");
 const roulettePhaseLabel = document.getElementById("roulettePhase");
 const rouletteColumns = {
@@ -58,6 +70,7 @@ const rouletteHistoryTrack = document.getElementById("rouletteHistory");
 const roulettePointer = document.getElementById("roulettePointer");
 
 const rouletteWrapper = document.querySelector(".roulette-wrapper");
+const betQuickButtons = document.querySelectorAll(".bet-quick-button");
 
 const blackjackForm = document.getElementById("blackjackForm");
 const blackjackStatus = document.getElementById("blackjackStatus");
@@ -78,6 +91,7 @@ const CURRENT_USER_KEY = "neoCasinoCurrentUser";
 const ROULETTE_BET_DURATION = 15000;
 const ROULETTE_SPIN_DURATION = 6000;
 const ROULETTE_HISTORY_LIMIT = 12;
+const GAME_HISTORY_LIMIT = 20;
 const ROULETTE_SEGMENT_ANGLE = 360 / 37;
 const ROULETTE_HALF_SEGMENT = ROULETTE_SEGMENT_ANGLE / 2;
 const numberFormatter = new Intl.NumberFormat("ru-RU");
@@ -95,6 +109,12 @@ const colorLabels = {
   red: "красное",
   black: "чёрное",
   green: "зелёное",
+};
+
+const resultLabels = {
+  win: "Победа",
+  lose: "Поражение",
+  draw: "Ничья",
 };
 
 const fakeNames = [
@@ -188,6 +208,15 @@ function formatCurrency(value) {
   return `${numberFormatter.format(Math.max(0, Math.round(value)))}₽`;
 }
 
+function formatSignedAmount(value) {
+  if (!Number.isFinite(value)) return formatCurrency(0);
+  const rounded = Math.round(value);
+  const absolute = numberFormatter.format(Math.abs(rounded));
+  if (rounded > 0) return `+${absolute}₽`;
+  if (rounded < 0) return `-${absolute}₽`;
+  return `${absolute}₽`;
+}
+
 function getInitials(value) {
   if (!value) return "NP";
   const parts = value
@@ -218,6 +247,15 @@ function ensureAccountDefaults(account) {
   }
   if (typeof account.preferences.liveTickerEnabled !== "boolean") {
     account.preferences.liveTickerEnabled = true;
+  }
+  if (!Array.isArray(account.history)) {
+    account.history = [];
+  }
+  if (typeof account.email !== "string") {
+    account.email = "";
+  }
+  if (typeof account.nickname !== "string" || !account.nickname.trim()) {
+    account.nickname = "Игрок";
   }
 }
 
@@ -288,7 +326,8 @@ function updateProfile() {
     profileVisit.textContent = "—";
     profileStreak.textContent = "0";
     if (profileEditNickname) profileEditNickname.value = "";
-    if (profileEditEmail) profileEditEmail.value = "";
+    if (securityEmailValue) securityEmailValue.textContent = "—";
+    renderGameHistory(null);
     hideFormFeedback(profileEditFeedback);
     return;
   }
@@ -310,7 +349,10 @@ function updateProfile() {
   profileVisit.textContent = formatDateTime(account.lastLogin);
   profileStreak.textContent = numberFormatter.format(account.streak ?? 0);
   if (profileEditNickname) profileEditNickname.value = account.nickname;
-  if (profileEditEmail) profileEditEmail.value = account.email ?? "";
+  if (securityEmailValue) {
+    securityEmailValue.textContent = account.email ? account.email : "—";
+  }
+  renderGameHistory(account);
 }
 
 function getLiveTickerEnabled() {
@@ -512,6 +554,116 @@ function pushRouletteHistory(color) {
   renderRouletteHistory();
 }
 
+function renderGameHistory(account = appState.currentAccount) {
+  if (!gameHistoryList) return;
+  gameHistoryList.innerHTML = "";
+  const historySource = Array.isArray(account?.history) ? account.history : [];
+  if (historySource.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "history-empty";
+    empty.textContent = "Пока нет сыгранных раундов.";
+    gameHistoryList.appendChild(empty);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  historySource.forEach((entry) => {
+    const item = document.createElement("li");
+    const resultClass = entry.result && typeof entry.result === "string" ? entry.result : "";
+    item.className = `history-entry ${resultClass}`.trim();
+
+    const game = document.createElement("span");
+    game.className = "history-game";
+    game.textContent = entry.game ?? "Игра";
+    if (entry.detail) {
+      const detail = document.createElement("span");
+      detail.className = "history-detail";
+      detail.textContent = entry.detail;
+      game.appendChild(detail);
+    }
+
+    const result = document.createElement("span");
+    result.className = "history-result";
+    const resultLabel = entry.result && resultLabels[entry.result]
+      ? resultLabels[entry.result]
+      : entry.result ?? "—";
+    result.textContent = resultLabel;
+
+    const amount = document.createElement("span");
+    amount.className = "history-amount";
+    amount.textContent = formatSignedAmount(entry.delta ?? 0);
+
+    const time = document.createElement("time");
+    const stamp = entry.timestamp ?? new Date().toISOString();
+    time.dateTime = stamp;
+    time.textContent = formatDateTime(stamp);
+
+    item.append(game, result, amount, time);
+    fragment.appendChild(item);
+  });
+
+  gameHistoryList.appendChild(fragment);
+}
+
+function addGameHistoryEntry(data) {
+  const account = appState.currentAccount;
+  if (!account) return;
+  ensureAccountDefaults(account);
+  const history = Array.isArray(account.history) ? account.history : [];
+  const entry = {
+    game: data.game ?? "Игра",
+    detail: data.detail ?? "",
+    result: data.result ?? "",
+    stake: Number.isFinite(data.stake) ? Math.max(0, Math.round(data.stake)) : null,
+    delta: Number.isFinite(data.delta) ? Math.round(data.delta) : 0,
+    timestamp: data.timestamp ?? new Date().toISOString(),
+  };
+  history.unshift(entry);
+  if (history.length > GAME_HISTORY_LIMIT) {
+    history.length = GAME_HISTORY_LIMIT;
+  }
+  account.history = history;
+}
+
+function resetQuickBetButtons() {
+  betQuickButtons.forEach((button) => button.classList.remove("active"));
+}
+
+function syncQuickBetButtons(value) {
+  if (!Number.isFinite(value)) {
+    resetQuickBetButtons();
+    return;
+  }
+  betQuickButtons.forEach((button) => {
+    const amount = Number(button.dataset.amount);
+    button.classList.toggle("active", amount === value);
+  });
+}
+
+function openModal(modal) {
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  const form = modal.querySelector("form");
+  form?.reset();
+  const feedback = modal.querySelector(".form-feedback");
+  hideFormFeedback(feedback);
+  const firstInput = modal.querySelector("input");
+  if (firstInput) {
+    setTimeout(() => {
+      firstInput.focus({ preventScroll: true });
+    }, 0);
+  }
+}
+
+function closeModal(modal) {
+  if (!modal) return;
+  const form = modal.querySelector("form");
+  modal.classList.add("hidden");
+  if (form) form.reset();
+  const feedback = modal.querySelector(".form-feedback");
+  hideFormFeedback(feedback);
+}
+
 function setRoulettePointerColor(color) {
   if (!roulettePointer) return;
   roulettePointer.classList.remove("red", "black", "green");
@@ -593,10 +745,15 @@ function startRouletteBettingPhase() {
   clearRouletteBoard();
   hideFormFeedback(rouletteFeedback);
   rouletteForm?.reset();
+  resetQuickBetButtons();
   if (rouletteStartButton) rouletteStartButton.disabled = false;
   if (rouletteNumber) rouletteNumber.textContent = "-";
   if (rouletteStatus)
     rouletteStatus.textContent = "Ставки открыты. У вас 15 секунд.";
+  if (rouletteWheel) {
+    rouletteWheel.classList.remove("spinning");
+  }
+  rouletteWrapper?.classList.remove("is-spinning");
   updateRouletteCountdown();
   clearInterval(rouletteCountdownInterval);
   rouletteCountdownInterval = setInterval(updateRouletteCountdown, 100);
@@ -606,6 +763,7 @@ function startRouletteBettingPhase() {
 }
 
 function startRouletteSpinPhase() {
+  if (!rouletteCycleActive) return;
   roulettePhase = "spinning";
   setRoulettePhaseLabel("spinning");
   stopRouletteFakeBets();
@@ -669,8 +827,13 @@ function finishRouletteRound(result) {
   if (account && roulettePlayerBet) {
     const { stake, color } = roulettePlayerBet;
     const multipliers = { red: 2, black: 2, green: 36 };
+    const betLabel = colorLabels[color] ?? color;
+    const resultLabel = colorLabels[resultColor] ?? resultColor;
+    let delta = -Math.abs(stake);
+    let outcomeResult = "lose";
     if (resultColor === color) {
       const winnings = stake * multipliers[color];
+      const profit = winnings - stake;
       account.balance += winnings;
       account.wins = Number(account.wins ?? 0) + 1;
       account.favouriteGame = "Рулетка";
@@ -678,9 +841,11 @@ function finishRouletteRound(result) {
       gainExperience(color === "green" ? 15 : 6);
       showFormFeedback(
         rouletteFeedback,
-        `Вы выиграли ${formatCurrency(winnings - stake)}!`,
+        `Вы выиграли ${formatCurrency(profit)}!`,
         true
       );
+      delta = profit;
+      outcomeResult = "win";
     } else {
       account.streak = 0;
       showFormFeedback(
@@ -689,6 +854,18 @@ function finishRouletteRound(result) {
         false
       );
     }
+    const stakeText = formatCurrency(stake);
+    const historyDetail =
+      outcomeResult === "win"
+        ? `Ставка на ${betLabel} — ${stakeText}`
+        : `Ставка на ${betLabel} — ${stakeText}, выпало ${resultLabel}`;
+    addGameHistoryEntry({
+      game: "Рулетка",
+      detail: historyDetail,
+      stake,
+      delta,
+      result: outcomeResult,
+    });
     updateDashboardData();
     persistCurrentUser();
   }
@@ -722,6 +899,8 @@ function stopRouletteCycle() {
   setRoulettePointerColor(null);
   clearRouletteBoard();
   hideFormFeedback(rouletteFeedback);
+  rouletteForm?.reset();
+  resetQuickBetButtons();
 }
 
 function startRouletteCycle() {
@@ -821,9 +1000,18 @@ function finishBlackjackRound(outcome, message, experienceReward = 0) {
   const account = appState.currentAccount;
   if (!account) return;
 
+  const stakeValue = blackjackStake;
+  let delta = 0;
+  let resultType = "lose";
+  const detailParts = [];
+  if (stakeValue > 0) {
+    detailParts.push(`Ставка ${formatCurrency(stakeValue)}`);
+  }
+
   if (outcome === "blackjack" || outcome === "win") {
     const multiplier = outcome === "blackjack" ? 2.5 : 2;
     const winnings = Math.round(blackjackStake * multiplier);
+    const profit = winnings - blackjackStake;
     account.balance += winnings;
     account.wins = Number(account.wins ?? 0) + 1;
     account.favouriteGame = "Блэкджэк";
@@ -831,16 +1019,33 @@ function finishBlackjackRound(outcome, message, experienceReward = 0) {
     gainExperience(experienceReward);
     showFormFeedback(
       blackjackFeedback,
-      `Вы выиграли ${formatCurrency(winnings - blackjackStake)}!`,
+      `Вы выиграли ${formatCurrency(profit)}!`,
       true
     );
+    delta = profit;
+    resultType = "win";
+    detailParts.unshift(outcome === "blackjack" ? "Блэкджэк" : "Победа");
   } else if (outcome === "push") {
     account.balance += blackjackStake;
     showFormFeedback(blackjackFeedback, "Ничья! Ставка возвращена.", true);
+    delta = 0;
+    resultType = "draw";
+    detailParts.unshift("Ничья");
   } else {
     account.streak = 0;
     showFormFeedback(blackjackFeedback, message, false);
+    delta = -Math.abs(blackjackStake);
+    resultType = "lose";
+    detailParts.unshift("Поражение");
   }
+
+  addGameHistoryEntry({
+    game: "Блэкджэк",
+    detail: detailParts.join(" • "),
+    stake: stakeValue,
+    delta,
+    result: resultType,
+  });
 
   blackjackStake = 0;
   updateDashboardData();
@@ -1007,8 +1212,6 @@ function handleProfileUpdate(event) {
 
   const formData = new FormData(profileEditForm);
   const nickname = formData.get("nickname")?.toString().trim();
-  const emailRaw = formData.get("email")?.toString().trim();
-  const email = emailRaw ? emailRaw.toLowerCase() : "";
 
   if (!nickname || nickname.length < 3) {
     showFormFeedback(
@@ -1018,34 +1221,137 @@ function handleProfileUpdate(event) {
     return;
   }
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showFormFeedback(profileEditFeedback, "Введите корректную почту.");
-    return;
-  }
-
   const account = appState.currentAccount;
   const nicknameLower = nickname.toLowerCase();
   const duplicate = appState.accounts.some(
-    (item) =>
-      item.id !== account.id &&
-      (item.email === email || item.nickname.toLowerCase() === nicknameLower)
+    (item) => item.id !== account.id && item.nickname.toLowerCase() === nicknameLower
   );
 
   if (duplicate) {
     showFormFeedback(
       profileEditFeedback,
-      "Такие данные уже используются другим игроком."
+      "Такой никнейм уже используется другим игроком."
     );
     return;
   }
 
   account.nickname = nickname;
-  account.email = email;
   ensureAccountDefaults(account);
   updateDashboardData();
   persistCurrentUser();
   showFormFeedback(profileEditFeedback, "Профиль обновлён.", true);
   showFeedback("Профиль успешно обновлён.");
+}
+
+function handlePasswordChange(event) {
+  event.preventDefault();
+  if (!passwordChangeForm) return;
+  hideFormFeedback(passwordFeedback);
+  if (!appState.currentAccount) {
+    showFeedback("Авторизуйтесь, чтобы изменить пароль.");
+    closeModal(passwordModal);
+    return;
+  }
+
+  const formData = new FormData(passwordChangeForm);
+  const current = formData.get("current")?.toString() ?? "";
+  const next = formData.get("next")?.toString() ?? "";
+  const confirm = formData.get("confirm")?.toString() ?? "";
+
+  if (current !== appState.currentAccount.password) {
+    showFormFeedback(passwordFeedback, "Неверный текущий пароль.");
+    return;
+  }
+
+  if (next.length < 6) {
+    showFormFeedback(
+      passwordFeedback,
+      "Пароль должен содержать не менее 6 символов."
+    );
+    return;
+  }
+
+  if (next !== confirm) {
+    showFormFeedback(passwordFeedback, "Пароли должны совпадать.");
+    return;
+  }
+
+  if (next === current) {
+    showFormFeedback(
+      passwordFeedback,
+      "Новый пароль должен отличаться от текущего."
+    );
+    return;
+  }
+
+  appState.currentAccount.password = next;
+  persistCurrentUser();
+  showFormFeedback(passwordFeedback, "Пароль обновлён.", true);
+  showFeedback("Пароль успешно изменён.");
+  setTimeout(() => {
+    closeModal(passwordModal);
+  }, 900);
+}
+
+function handleEmailChange(event) {
+  event.preventDefault();
+  if (!emailChangeForm) return;
+  hideFormFeedback(emailFeedback);
+  if (!appState.currentAccount) {
+    showFeedback("Авторизуйтесь, чтобы изменить почту.");
+    closeModal(emailModal);
+    return;
+  }
+
+  const formData = new FormData(emailChangeForm);
+  const email = formData.get("email")?.toString().trim().toLowerCase();
+  const confirm = formData.get("confirm")?.toString().trim().toLowerCase();
+  const password = formData.get("password")?.toString() ?? "";
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showFormFeedback(emailFeedback, "Введите корректную почту.");
+    return;
+  }
+
+  if (email !== confirm) {
+    showFormFeedback(emailFeedback, "Почты должны совпадать.");
+    return;
+  }
+
+  if (password !== appState.currentAccount.password) {
+    showFormFeedback(emailFeedback, "Неверный пароль.");
+    return;
+  }
+
+  if (email === appState.currentAccount.email) {
+    showFormFeedback(
+      emailFeedback,
+      "Укажите новую почту, отличную от текущей."
+    );
+    return;
+  }
+
+  const duplicate = appState.accounts.some(
+    (item) => item.id !== appState.currentAccount.id && item.email === email
+  );
+
+  if (duplicate) {
+    showFormFeedback(
+      emailFeedback,
+      "Эта почта уже используется другим игроком."
+    );
+    return;
+  }
+
+  appState.currentAccount.email = email;
+  ensureAccountDefaults(appState.currentAccount);
+  updateDashboardData();
+  persistCurrentUser();
+  showFormFeedback(emailFeedback, "Почта обновлена.", true);
+  showFeedback("Почта успешно обновлена.");
+  setTimeout(() => {
+    closeModal(emailModal);
+  }, 900);
 }
 
 function handleWithdraw() {
@@ -1288,8 +1594,61 @@ backButtons.forEach((button) => {
 loginForm?.addEventListener("submit", handleLogin);
 registerForm?.addEventListener("submit", handleRegister);
 profileEditForm?.addEventListener("submit", handleProfileUpdate);
+passwordChangeForm?.addEventListener("submit", handlePasswordChange);
+emailChangeForm?.addEventListener("submit", handleEmailChange);
 logoutButton?.addEventListener("click", handleLogout);
 liveTickerToggle?.addEventListener("change", handleLiveTickerToggleChange);
+
+historyRefreshButton?.addEventListener("click", () => {
+  if (!appState.currentAccount) {
+    showFeedback("Авторизуйтесь, чтобы просматривать историю игр.");
+    return;
+  }
+  renderGameHistory(appState.currentAccount);
+  showFeedback("История обновлена.");
+});
+
+changePasswordButton?.addEventListener("click", () => {
+  if (!appState.currentAccount) {
+    showFeedback("Авторизуйтесь, чтобы изменить пароль.");
+    return;
+  }
+  openModal(passwordModal);
+});
+
+changeEmailButton?.addEventListener("click", () => {
+  if (!appState.currentAccount) {
+    showFeedback("Авторизуйтесь, чтобы изменить почту.");
+    return;
+  }
+  openModal(emailModal);
+});
+
+modalCloseButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const modal = button.closest(".modal-overlay");
+    closeModal(modal);
+  });
+});
+
+[passwordModal, emailModal].forEach((modal) => {
+  modal?.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal(modal);
+    }
+  });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (passwordModal && !passwordModal.classList.contains("hidden")) {
+    closeModal(passwordModal);
+    return;
+  }
+  if (emailModal && !emailModal.classList.contains("hidden")) {
+    closeModal(emailModal);
+  }
+});
 
 authSwitchButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -1334,11 +1693,28 @@ dashboardLink?.addEventListener("click", () => {
   showPage("dashboard");
 });
 
-brandButton?.addEventListener("click", () => {
-  showPage("home");
+rouletteForm?.addEventListener("submit", handleRouletteBet);
+rouletteForm?.addEventListener("reset", resetQuickBetButtons);
+
+betQuickButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const amount = Number(button.dataset.amount);
+    if (Number.isFinite(amount) && rouletteStakeInput) {
+      rouletteStakeInput.value = amount.toString();
+      rouletteStakeInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    syncQuickBetButtons(amount);
+  });
 });
 
-rouletteForm?.addEventListener("submit", handleRouletteBet);
+rouletteStakeInput?.addEventListener("input", () => {
+  const value = Number(rouletteStakeInput.value);
+  if (Number.isFinite(value)) {
+    syncQuickBetButtons(value);
+  } else {
+    resetQuickBetButtons();
+  }
+});
 blackjackForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!appState.currentAccount) {
