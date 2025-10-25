@@ -94,6 +94,49 @@ const ROULETTE_HISTORY_LIMIT = 12;
 const GAME_HISTORY_LIMIT = 20;
 const ROULETTE_SEGMENT_ANGLE = 360 / 37;
 const ROULETTE_HALF_SEGMENT = ROULETTE_SEGMENT_ANGLE / 2;
+const ROULETTE_WHEEL_ORDER = [
+  0,
+  32,
+  15,
+  19,
+  4,
+  21,
+  2,
+  25,
+  17,
+  34,
+  6,
+  27,
+  13,
+  36,
+  11,
+  30,
+  8,
+  23,
+  10,
+  5,
+  24,
+  16,
+  33,
+  1,
+  20,
+  14,
+  31,
+  9,
+  22,
+  18,
+  29,
+  7,
+  28,
+  12,
+  35,
+  3,
+  26,
+];
+const ROULETTE_NUMBER_INDEX = ROULETTE_WHEEL_ORDER.reduce((map, number, index) => {
+  map[number] = index;
+  return map;
+}, {});
 const ROULETTE_BET_SECONDS = Math.round(ROULETTE_BET_DURATION / 1000);
 const numberFormatter = new Intl.NumberFormat("ru-RU");
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
@@ -778,8 +821,9 @@ function startRouletteSpinPhase() {
   if (rouletteWheel) {
     rouletteWheel.classList.add("spinning");
     const spins = randomInt(4, 6) * 360;
+    const resultIndex = ROULETTE_NUMBER_INDEX[result] ?? result;
     const targetAngle =
-      (result * ROULETTE_SEGMENT_ANGLE + ROULETTE_HALF_SEGMENT) % 360;
+      (resultIndex * ROULETTE_SEGMENT_ANGLE + ROULETTE_HALF_SEGMENT) % 360;
     const normalizedCurrent = ((rouletteRotation % 360) + 360) % 360;
     const desiredFinal = ((90 - targetAngle) % 360 + 360) % 360;
     const deltaToDesired = (desiredFinal - normalizedCurrent + 360) % 360;
