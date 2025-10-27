@@ -517,44 +517,87 @@
   </section>
 
   <section id="blackjackGame" class="page-block game-page hidden" data-page="blackjack" data-requires-auth="true">
-    <div class="game-layout glassy">
+    <div class="game-layout glassy blackjack-layout">
       <div class="game-header">
         <div class="game-title">
           <button class="btn outline back-to-lobby" data-target="home">← В лобби</button>
           <h2>Блэкджэк</h2>
         </div>
-        <p>Выбирайте ставку, тяните карты и попытайтесь обыграть дилера.</p>
+        <p>Минималистичный стол, неоновые акценты и полный набор действий против дилера.</p>
       </div>
-      <div class="game-body">
-        <div class="game-visual">
-          <img src="https://i.imgur.com/txlCdxO.png" alt="Стол для блэкджека" />
-        </div>
-        <div class="game-controls blackjack">
-          <form id="blackjackForm" class="bet-form">
-            <label class="input-group">
-              <span>Размер ставки (₽)</span>
-              <input type="number" name="stake" min="100" step="50" placeholder="Минимум 100" required />
+      <div class="game-body blackjack-body">
+        <aside class="blackjack-sidebar">
+          <form id="blackjackForm" class="blackjack-stake-form" autocomplete="off">
+            <div class="stake-header">
+              <span>Текущая ставка</span>
+              <strong id="blackjackStakeDisplay">$0.20</strong>
+            </div>
+            <div class="stake-adjust">
+              <button type="button" class="chip-control" data-action="decrease">–</button>
+              <button type="button" class="chip-control" data-action="increase">+</button>
+              <button type="button" class="chip-control" data-action="half">÷2</button>
+              <button type="button" class="chip-control" data-action="double">×2</button>
+            </div>
+            <label class="input-group compact">
+              <span>Введите сумму</span>
+              <input
+                type="number"
+                id="blackjackStakeInput"
+                name="stake"
+                min="0.1"
+                step="0.1"
+                value="0.2"
+                required
+              />
             </label>
-            <div class="blackjack-actions">
-              <button type="submit" class="btn primary" id="blackjackStart">Начать раунд</button>
-              <button type="button" class="btn secondary" id="blackjackHit">Взять карту</button>
-              <button type="button" class="btn outline" id="blackjackStand">Хватит</button>
-              <button type="button" class="btn secondary hidden" id="blackjackRestart">Новая ставка</button>
-            </div>
+            <button type="submit" class="btn neon" id="blackjackDeal">Раздать</button>
+            <label class="live-toggle">
+              <input type="checkbox" id="blackjackLiveToggle" />
+              <span>Live режим</span>
+            </label>
           </form>
-          <div class="blackjack-table">
-            <div class="hand">
-              <h3>Дилер</h3>
-              <div class="cards" id="dealerCards"></div>
-              <p class="score">Очки: <span id="dealerScore">0</span></p>
+          <div class="blackjack-live-feed hidden" id="blackjackLiveFeed">
+            <h4>Live ставки</h4>
+            <ul id="blackjackLiveList"></ul>
+          </div>
+        </aside>
+        <div class="blackjack-stage">
+          <div class="blackjack-table-surface">
+            <div class="table-legend">
+              <span class="legend-title">BLACKJACK PAYS 3 TO 2</span>
+              <span class="legend-sub">Dealer must stand on 17 and must draw to 16</span>
+              <span class="legend-insurance">Insurance pays 2 to 1</span>
             </div>
-            <div class="hand">
-              <h3>Вы</h3>
-              <div class="cards" id="playerCards"></div>
-              <p class="score">Очки: <span id="playerScore">0</span></p>
+            <div class="dealer-zone">
+              <div class="hand-meta">
+                <span class="hand-label">Дилер</span>
+                <span class="hand-score" id="blackjackDealerTotal">0</span>
+              </div>
+              <div class="hand-cards" id="blackjackDealerCards"></div>
+            </div>
+            <div class="player-zone">
+              <div id="blackjackPlayerHands" class="player-hands"></div>
             </div>
           </div>
-          <p class="blackjack-status" id="blackjackStatus">Сделайте ставку, чтобы начать.</p>
+          <div class="blackjack-status-bar">
+            <p id="blackjackStatus">Сделайте ставку и нажмите «Раздать».</p>
+          </div>
+          <div class="blackjack-actions-row">
+            <button type="button" class="blackjack-action stop" id="blackjackStand">Стоп</button>
+            <button type="button" class="blackjack-action hit" id="blackjackHit">Ещё</button>
+            <button type="button" class="blackjack-action double" id="blackjackDouble">×2 Удвоить</button>
+            <button type="button" class="blackjack-action split" id="blackjackSplit">Сплит</button>
+          </div>
+          <div class="blackjack-footer">
+            <div class="blackjack-totals">
+              <span>Ставка: <strong id="blackjackBetTotal">$0.00</strong></span>
+              <span>Баланс: <strong id="blackjackBalance">$0.00</strong></span>
+            </div>
+            <div class="blackjack-meta">
+              <span>Provably fair protected</span>
+              <span>RTP 99.5%</span>
+            </div>
+          </div>
           <p class="form-feedback hidden" id="blackjackFeedback"></p>
         </div>
       </div>

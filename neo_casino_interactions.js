@@ -73,16 +73,24 @@ const rouletteWrapper = document.querySelector(".roulette-wrapper");
 const betQuickButtons = document.querySelectorAll(".bet-quick-button");
 
 const blackjackForm = document.getElementById("blackjackForm");
+const blackjackStakeInput = document.getElementById("blackjackStakeInput");
+const blackjackStakeDisplay = document.getElementById("blackjackStakeDisplay");
+const blackjackBetTotalDisplay = document.getElementById("blackjackBetTotal");
+const blackjackBalanceDisplay = document.getElementById("blackjackBalance");
 const blackjackStatus = document.getElementById("blackjackStatus");
 const blackjackFeedback = document.getElementById("blackjackFeedback");
 const blackjackHitButton = document.getElementById("blackjackHit");
 const blackjackStandButton = document.getElementById("blackjackStand");
-const blackjackRestartButton = document.getElementById("blackjackRestart");
-const blackjackStartButton = document.getElementById("blackjackStart");
-const playerCardsEl = document.getElementById("playerCards");
-const dealerCardsEl = document.getElementById("dealerCards");
-const playerScoreEl = document.getElementById("playerScore");
-const dealerScoreEl = document.getElementById("dealerScore");
+const blackjackDoubleButton = document.getElementById("blackjackDouble");
+const blackjackSplitButton = document.getElementById("blackjackSplit");
+const blackjackDealButton = document.getElementById("blackjackDeal");
+const blackjackStakeButtons = document.querySelectorAll(".chip-control");
+const blackjackDealerCardsEl = document.getElementById("blackjackDealerCards");
+const blackjackDealerTotalEl = document.getElementById("blackjackDealerTotal");
+const blackjackPlayerHandsEl = document.getElementById("blackjackPlayerHands");
+const blackjackLiveToggle = document.getElementById("blackjackLiveToggle");
+const blackjackLiveFeed = document.getElementById("blackjackLiveFeed");
+const blackjackLiveList = document.getElementById("blackjackLiveList");
 const backButtons = document.querySelectorAll(".back-to-lobby");
 const brandButton = document.querySelector(".brand[data-target='home']");
 
@@ -138,7 +146,14 @@ const ROULETTE_NUMBER_INDEX = ROULETTE_WHEEL_ORDER.reduce((map, number, index) =
   return map;
 }, {});
 const ROULETTE_BET_SECONDS = Math.round(ROULETTE_BET_DURATION / 1000);
-const numberFormatter = new Intl.NumberFormat("ru-RU");
+const numberFormatter = new Intl.NumberFormat("ru-RU", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+const usdFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 const dateFormatter = new Intl.DateTimeFormat("ru-RU", {
   day: "2-digit",
   month: "long",
@@ -174,21 +189,69 @@ const fakeNames = [
   "CharmingLuck",
 ];
 
-const blackjackDeckValues = [
-  "A",
-  "K",
-  "Q",
-  "J",
-  "10",
-  "9",
-  "8",
-  "7",
-  "6",
-  "5",
-  "4",
-  "3",
-  "2",
-];
+const BLACKJACK_RANKS = ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"];
+const BLACKJACK_SUITS = ["hearts", "diamonds", "clubs", "spades"];
+const BLACKJACK_FACE_RANKS = new Set(["J", "Q", "K"]);
+const BLACKJACK_PIP_LAYOUTS = {
+  A: ["middle-center"],
+  "2": ["top-center", "bottom-center"],
+  "3": ["top-center", "middle-center", "bottom-center"],
+  "4": ["top-left", "top-right", "bottom-left", "bottom-right"],
+  "5": ["top-left", "top-right", "middle-center", "bottom-left", "bottom-right"],
+  "6": [
+    "top-left",
+    "top-right",
+    "middle-left",
+    "middle-right",
+    "bottom-left",
+    "bottom-right",
+  ],
+  "7": [
+    "top-left",
+    "top-right",
+    "middle-left",
+    "middle-right",
+    "bottom-left",
+    "bottom-right",
+    "top-center",
+  ],
+  "8": [
+    "top-left",
+    "top-right",
+    "middle-left",
+    "middle-right",
+    "bottom-left",
+    "bottom-right",
+    "top-center",
+    "bottom-center",
+  ],
+  "9": [
+    "top-left",
+    "top-right",
+    "middle-left",
+    "middle-right",
+    "bottom-left",
+    "bottom-right",
+    "top-center",
+    "bottom-center",
+    "middle-center",
+  ],
+  "10": [
+    "top-left",
+    "top-right",
+    "upper-left",
+    "upper-right",
+    "middle-left",
+    "middle-right",
+    "lower-left",
+    "lower-right",
+    "bottom-left",
+    "bottom-right",
+  ],
+};
+const BLACKJACK_MIN_BET = 0.1;
+const BLACKJACK_STEP = 0.1;
+const BLACKJACK_MAX_LIVE_ENTRIES = 10;
 
 let roulettePhase = "idle";
 let rouletteCycleActive = false;
@@ -202,10 +265,17 @@ let rouletteRotation = 0;
 let roulettePlayerBet = null;
 let rouletteHistory = [];
 let blackjackDeck = [];
-let blackjackPlayerCards = [];
 let blackjackDealerCards = [];
-let blackjackStake = 0;
+let blackjackHands = [];
+let blackjackActiveHandIndex = 0;
+let blackjackDealerRevealed = false;
 let blackjackRoundActive = false;
+let blackjackResolving = false;
+let blackjackTotalStake = 0;
+let blackjackLiveEnabled = false;
+let blackjackLiveTimer = null;
+let blackjackLiveEntries = [];
+let blackjackHandCounter = 0;
 const appState = {
   isAuthenticated: false,
   currentAccount: null,
@@ -248,17 +318,27 @@ function clearCurrentUser() {
   localStorage.removeItem(CURRENT_USER_KEY);
 }
 
+function roundCurrency(value) {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value * 100) / 100;
+}
+
 function formatCurrency(value) {
-  return `${numberFormatter.format(Math.max(0, Math.round(value)))}₽`;
+  const normalized = roundCurrency(Number.isFinite(value) ? value : 0);
+  return `${numberFormatter.format(normalized)}₽`;
 }
 
 function formatSignedAmount(value) {
   if (!Number.isFinite(value)) return formatCurrency(0);
-  const rounded = Math.round(value);
+  const rounded = roundCurrency(value);
   const absolute = numberFormatter.format(Math.abs(rounded));
   if (rounded > 0) return `+${absolute}₽`;
   if (rounded < 0) return `-${absolute}₽`;
   return `${absolute}₽`;
+}
+
+function formatUsd(value) {
+  return `$${usdFormatter.format(roundCurrency(value))}`;
 }
 
 function getInitials(value) {
@@ -332,6 +412,7 @@ function updateBalanceDisplays() {
   if (dashboardBalanceAmount) {
     dashboardBalanceAmount.textContent = formatCurrency(balanceValue);
   }
+  updateBlackjackTotals();
 }
 
 function updateWelcome() {
@@ -658,8 +739,8 @@ function addGameHistoryEntry(data) {
     game: data.game ?? "Игра",
     detail: data.detail ?? "",
     result: data.result ?? "",
-    stake: Number.isFinite(data.stake) ? Math.max(0, Math.round(data.stake)) : null,
-    delta: Number.isFinite(data.delta) ? Math.round(data.delta) : 0,
+    stake: Number.isFinite(data.stake) ? Math.max(0, roundCurrency(data.stake)) : null,
+    delta: Number.isFinite(data.delta) ? roundCurrency(data.delta) : 0,
     timestamp: data.timestamp ?? new Date().toISOString(),
   };
   history.unshift(entry);
@@ -881,12 +962,12 @@ function finishRouletteRound(result) {
     const multipliers = { red: 2, black: 2, green: 36 };
     const betLabel = colorLabels[color] ?? color;
     const resultLabel = colorLabels[resultColor] ?? resultColor;
-    let delta = -Math.abs(stake);
+    let delta = roundCurrency(-Math.abs(stake));
     let outcomeResult = "lose";
     if (resultColor === color) {
-      const winnings = stake * multipliers[color];
-      const profit = winnings - stake;
-      account.balance += winnings;
+      const winnings = roundCurrency(stake * multipliers[color]);
+      const profit = roundCurrency(winnings - stake);
+      account.balance = roundCurrency((account.balance ?? 0) + winnings);
       account.wins = Number(account.wins ?? 0) + 1;
       account.favouriteGame = "Рулетка";
       account.streak = Number(account.streak ?? 0) + 1;
@@ -914,8 +995,8 @@ function finishRouletteRound(result) {
     addGameHistoryEntry({
       game: "Рулетка",
       detail: historyDetail,
-      stake,
-      delta,
+      stake: roundCurrency(stake),
+      delta: roundCurrency(delta),
       result: outcomeResult,
     });
     updateDashboardData();
@@ -962,212 +1043,721 @@ function startRouletteCycle() {
 }
 
 function initializeBlackjackState() {
+  stopBlackjackLiveTimer();
   blackjackDeck = [];
-  blackjackPlayerCards = [];
   blackjackDealerCards = [];
-  blackjackStake = 0;
+  blackjackHands = [];
+  blackjackActiveHandIndex = 0;
+  blackjackDealerRevealed = false;
   blackjackRoundActive = false;
+  blackjackResolving = false;
+  blackjackTotalStake = 0;
+  if (blackjackLiveToggle) {
+    blackjackLiveEnabled = blackjackLiveToggle.checked;
+  }
+  if (!blackjackLiveEnabled) {
+    blackjackLiveEntries = [];
+  }
+  blackjackHandCounter = 0;
   blackjackForm?.reset();
-  if (blackjackHitButton) blackjackHitButton.disabled = true;
-  if (blackjackStandButton) blackjackStandButton.disabled = true;
-  if (blackjackRestartButton) blackjackRestartButton.classList.add("hidden");
-  if (blackjackStartButton) blackjackStartButton.disabled = false;
-  if (blackjackStatus)
-    blackjackStatus.textContent = "Сделайте ставку, чтобы начать.";
-  if (playerCardsEl) playerCardsEl.innerHTML = "";
-  if (dealerCardsEl) dealerCardsEl.innerHTML = "";
-  if (playerScoreEl) playerScoreEl.textContent = "0";
-  if (dealerScoreEl) dealerScoreEl.textContent = "0";
+  if (blackjackStakeInput) {
+    const defaultValue =
+      Number.parseFloat(
+        blackjackStakeInput.defaultValue || blackjackStakeInput.value || BLACKJACK_STEP
+      ) || BLACKJACK_STEP;
+    const sanitized = sanitizeStake(defaultValue);
+    blackjackStakeInput.value = sanitized.toFixed(2);
+  }
+  updateBlackjackStakeDisplay();
+  updateBlackjackTotals();
+  clearBlackjackTable();
   hideFormFeedback(blackjackFeedback);
+  updateBlackjackStatus("Сделайте ставку и нажмите «Раздать».");
+  if (blackjackDealButton) blackjackDealButton.disabled = false;
+  setStakeControlsDisabled(false);
+  updateBlackjackActionButtons();
+  renderBlackjackTable();
+  renderBlackjackLiveBets();
+  if (blackjackLiveEnabled) {
+    scheduleBlackjackLiveEntry();
+  }
 }
 
 function resetRouletteUI() {
   stopRouletteCycle();
 }
 
-function createBlackjackDeck() {
-  const deck = [];
-  blackjackDeckValues.forEach((value) => {
-    for (let i = 0; i < 4; i += 1) {
-      deck.push(value);
-    }
-  });
-  return deck.sort(() => Math.random() - 0.5);
+function sanitizeStake(value) {
+  if (!Number.isFinite(value)) return BLACKJACK_MIN_BET;
+  const scaled = Math.max(BLACKJACK_MIN_BET, value);
+  const steps = Math.round(scaled / BLACKJACK_STEP);
+  return roundCurrency(steps * BLACKJACK_STEP);
 }
 
-function drawCard() {
+function setStakeControlsDisabled(disabled) {
+  if (blackjackStakeInput) blackjackStakeInput.disabled = disabled;
+  blackjackStakeButtons.forEach((button) => {
+    button.disabled = disabled;
+  });
+}
+
+function adjustBlackjackStake(action) {
+  if (!blackjackStakeInput) return;
+  let value = sanitizeStake(Number.parseFloat(blackjackStakeInput.value));
+  switch (action) {
+    case "increase":
+      value = sanitizeStake(value + BLACKJACK_STEP);
+      break;
+    case "decrease":
+      value = sanitizeStake(value - BLACKJACK_STEP);
+      break;
+    case "double":
+      value = sanitizeStake(value * 2);
+      break;
+    case "half":
+      value = sanitizeStake(value / 2);
+      break;
+    default:
+      value = sanitizeStake(value);
+  }
+  blackjackStakeInput.value = value.toFixed(2);
+  updateBlackjackStakeDisplay();
+}
+
+function updateBlackjackStakeDisplay() {
+  if (!blackjackStakeInput) return;
+  const stakeValue = sanitizeStake(Number.parseFloat(blackjackStakeInput.value));
+  blackjackStakeInput.value = stakeValue.toFixed(2);
+  if (blackjackStakeDisplay) {
+    blackjackStakeDisplay.textContent = formatUsd(stakeValue);
+  }
+}
+
+function updateBlackjackTotals() {
+  if (blackjackBetTotalDisplay) {
+    blackjackBetTotalDisplay.textContent = formatUsd(blackjackTotalStake);
+  }
+  const balance = appState.currentAccount?.balance ?? 0;
+  if (blackjackBalanceDisplay) {
+    blackjackBalanceDisplay.textContent = formatUsd(balance);
+  }
+}
+
+function updateBlackjackStatus(message) {
+  if (blackjackStatus) blackjackStatus.textContent = message;
+}
+
+function clearBlackjackTable() {
+  if (blackjackDealerCardsEl) blackjackDealerCardsEl.innerHTML = "";
+  if (blackjackPlayerHandsEl) blackjackPlayerHandsEl.innerHTML = "";
+  if (blackjackDealerTotalEl) blackjackDealerTotalEl.textContent = "0";
+}
+
+function createBlackjackDeck() {
+  const deck = [];
+  BLACKJACK_SUITS.forEach((suit) => {
+    BLACKJACK_RANKS.forEach((rank) => {
+      deck.push({ rank, suit });
+    });
+  });
+  for (let i = deck.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+}
+
+function drawBlackjackCard() {
   if (blackjackDeck.length === 0) {
     blackjackDeck = createBlackjackDeck();
   }
-  return blackjackDeck.pop();
+  const card = blackjackDeck.pop();
+  return { ...card };
 }
 
-function calculateScore(cards) {
+function calculateHandScore(cards) {
   let total = 0;
   let aces = 0;
   cards.forEach((card) => {
-    if (card === "A") {
+    if (card.rank === "A") {
       total += 11;
       aces += 1;
-    } else if (["K", "Q", "J"].includes(card)) {
+    } else if (["K", "Q", "J"].includes(card.rank)) {
       total += 10;
     } else {
-      total += Number(card);
+      total += Number(card.rank);
     }
   });
   while (total > 21 && aces > 0) {
     total -= 10;
     aces -= 1;
   }
-  return total;
+  return { total, isSoft: aces > 0 };
 }
 
-function renderBlackjackHands() {
-  if (dealerCardsEl) {
-    dealerCardsEl.innerHTML = blackjackDealerCards
-      .map((card) => `<span class="card">${card}</span>`)
-      .join("");
-  }
-  if (playerCardsEl) {
-    playerCardsEl.innerHTML = blackjackPlayerCards
-      .map((card) => `<span class="card">${card}</span>`)
-      .join("");
-  }
-  if (dealerScoreEl) {
-    dealerScoreEl.textContent = calculateScore(blackjackDealerCards).toString();
-  }
-  if (playerScoreEl) {
-    playerScoreEl.textContent = calculateScore(blackjackPlayerCards).toString();
-  }
-}
+const suitSymbols = {
+  hearts: "♥",
+  diamonds: "♦",
+  clubs: "♣",
+  spades: "♠",
+};
 
-function finishBlackjackRound(outcome, message, experienceReward = 0) {
-  blackjackRoundActive = false;
-  if (blackjackHitButton) blackjackHitButton.disabled = true;
-  if (blackjackStandButton) blackjackStandButton.disabled = true;
-  if (blackjackRestartButton) blackjackRestartButton.classList.remove("hidden");
-  if (blackjackStartButton) blackjackStartButton.disabled = false;
-  if (blackjackStatus) blackjackStatus.textContent = message;
-
-  const account = appState.currentAccount;
-  if (!account) return;
-
-  const stakeValue = blackjackStake;
-  let delta = 0;
-  let resultType = "lose";
-  const detailParts = [];
-  if (stakeValue > 0) {
-    detailParts.push(`Ставка ${formatCurrency(stakeValue)}`);
+function createCardElement(card, { hidden = false } = {}) {
+  const element = document.createElement("div");
+  element.classList.add("playing-card");
+  if (hidden) {
+    element.classList.add("card-back");
+    requestAnimationFrame(() => element.classList.add("card-enter"));
+    return element;
   }
-
-  if (outcome === "blackjack" || outcome === "win") {
-    const multiplier = outcome === "blackjack" ? 2.5 : 2;
-    const winnings = Math.round(blackjackStake * multiplier);
-    const profit = winnings - blackjackStake;
-    account.balance += winnings;
-    account.wins = Number(account.wins ?? 0) + 1;
-    account.favouriteGame = "Блэкджэк";
-    account.streak = Number(account.streak ?? 0) + 1;
-    gainExperience(experienceReward);
-    showFormFeedback(
-      blackjackFeedback,
-      `Вы выиграли ${formatCurrency(profit)}!`,
-      true
-    );
-    delta = profit;
-    resultType = "win";
-    detailParts.unshift(outcome === "blackjack" ? "Блэкджэк" : "Победа");
-  } else if (outcome === "push") {
-    account.balance += blackjackStake;
-    showFormFeedback(blackjackFeedback, "Ничья! Ставка возвращена.", true);
-    delta = 0;
-    resultType = "draw";
-    detailParts.unshift("Ничья");
+  const symbol = suitSymbols[card.suit] ?? "";
+  element.classList.add(`suit-${card.suit}`);
+  const topCorner = `
+    <div class="corner top">
+      <span class="rank">${card.rank}</span>
+      <span class="suit">${symbol}</span>
+    </div>
+  `;
+  const bottomCorner = `
+    <div class="corner bottom">
+      <span class="rank">${card.rank}</span>
+      <span class="suit">${symbol}</span>
+    </div>
+  `;
+  let centerContent = "";
+  if (BLACKJACK_FACE_RANKS.has(card.rank)) {
+    const faceRankClass = card.rank.toLowerCase();
+    element.classList.add("is-face");
+    centerContent = `
+      <div class="face-illustration face-${faceRankClass}">
+        <span class="face-rank">${card.rank}</span>
+        <span class="face-suit">${symbol}</span>
+      </div>
+    `;
   } else {
-    account.streak = 0;
-    showFormFeedback(blackjackFeedback, message, false);
-    delta = -Math.abs(blackjackStake);
-    resultType = "lose";
-    detailParts.unshift("Поражение");
+    const layout = BLACKJACK_PIP_LAYOUTS[card.rank] ?? ["middle-center"];
+    const pipMarkup = layout
+      .map((position) => `<span class="pip ${position}">${symbol}</span>`)
+      .join("");
+    const pipClasses = card.rank === "A" ? "pip-grid ace" : "pip-grid";
+    element.classList.add("has-pips");
+    centerContent = `<div class="${pipClasses}">${pipMarkup}</div>`;
   }
+  element.innerHTML = `${topCorner}${centerContent}${bottomCorner}`;
+  requestAnimationFrame(() => element.classList.add("card-enter"));
+  return element;
+}
 
-  addGameHistoryEntry({
-    game: "Блэкджэк",
-    detail: detailParts.join(" • "),
-    stake: stakeValue,
-    delta,
-    result: resultType,
-  });
+function renderBlackjackTable() {
+  if (blackjackDealerCardsEl) {
+    blackjackDealerCardsEl.innerHTML = "";
+    blackjackDealerCards.forEach((card, index) => {
+      const hidden = !blackjackDealerRevealed && index === 1;
+      const cardElement = createCardElement(card, { hidden });
+      blackjackDealerCardsEl.appendChild(cardElement);
+    });
+  }
+  if (blackjackDealerTotalEl) {
+    const visibleCards =
+      blackjackDealerRevealed || blackjackDealerCards.length <= 1
+        ? blackjackDealerCards
+        : [blackjackDealerCards[0]];
+    const score = calculateHandScore(visibleCards).total;
+    blackjackDealerTotalEl.textContent = score.toString();
+  }
+  if (blackjackPlayerHandsEl) {
+    blackjackPlayerHandsEl.innerHTML = "";
+    blackjackHands.forEach((hand, index) => {
+      const handElement = document.createElement("div");
+      handElement.classList.add("player-hand");
+      if (
+        blackjackRoundActive &&
+        !blackjackResolving &&
+        index === blackjackActiveHandIndex &&
+        hand.status === "playing"
+      ) {
+        handElement.classList.add("active");
+      }
+      if (hand.status === "bust") {
+        handElement.classList.add("bust");
+      }
+      if (hand.status === "blackjack") {
+        handElement.classList.add("blackjack");
+      }
+      const header = document.createElement("div");
+      header.classList.add("hand-meta");
+      const label = blackjackHands.length > 1 ? `Рука ${index + 1}` : "Вы";
+      const score = calculateHandScore(hand.cards);
+      header.innerHTML = `<span class="hand-label">${label}</span><span class="hand-score">${score.total}</span>`;
+      handElement.appendChild(header);
+      const cardsContainer = document.createElement("div");
+      cardsContainer.classList.add("hand-cards");
+      hand.cards.forEach((cardItem) => {
+        const cardElement = createCardElement(cardItem);
+        cardsContainer.appendChild(cardElement);
+      });
+      handElement.appendChild(cardsContainer);
+      const footer = document.createElement("div");
+      footer.classList.add("hand-meta");
+      const statusSpan = document.createElement("span");
+      statusSpan.classList.add("hand-status");
+      if (hand.result) {
+        statusSpan.textContent = hand.result.message;
+        if (hand.result.type === "win" || hand.result.type === "blackjack") {
+          statusSpan.classList.add("success");
+        } else if (hand.result.type === "lose") {
+          statusSpan.classList.add("fail");
+        }
+      } else if (hand.status === "bust") {
+        statusSpan.textContent = "Перебор";
+        statusSpan.classList.add("fail");
+      } else if (hand.status === "blackjack") {
+        statusSpan.textContent = "Блэкджэк";
+        statusSpan.classList.add("success");
+      } else if (hand.status === "stood") {
+        statusSpan.textContent = "Ожидание дилера";
+      } else {
+        statusSpan.textContent =
+          index === blackjackActiveHandIndex ? "Ваш ход" : "Ожидание";
+      }
+      const stakeSpan = document.createElement("span");
+      stakeSpan.classList.add("hand-stake");
+      stakeSpan.textContent = formatUsd(hand.stake);
+      footer.append(statusSpan, stakeSpan);
+      handElement.appendChild(footer);
+      blackjackPlayerHandsEl.appendChild(handElement);
+    });
+  }
+}
 
-  blackjackStake = 0;
-  updateDashboardData();
-  persistCurrentUser();
+function getCurrentBlackjackHand() {
+  return blackjackHands[blackjackActiveHandIndex] ?? null;
+}
+
+function updateBlackjackActionButtons() {
+  const account = appState.currentAccount;
+  const currentHand = getCurrentBlackjackHand();
+  const canAct =
+    blackjackRoundActive &&
+    !blackjackResolving &&
+    currentHand &&
+    currentHand.status === "playing";
+  if (blackjackHitButton) {
+    blackjackHitButton.disabled = !canAct || currentHand?.splitFromAce === true;
+  }
+  if (blackjackStandButton) {
+    blackjackStandButton.disabled = !canAct;
+  }
+  if (blackjackDoubleButton) {
+    const canDouble =
+      canAct &&
+      currentHand?.cards.length === 2 &&
+      !currentHand?.doubled &&
+      account &&
+      roundCurrency(account.balance ?? 0) >= roundCurrency(currentHand.stake);
+    blackjackDoubleButton.disabled = !canDouble;
+  }
+  if (blackjackSplitButton) {
+    const canSplit =
+      blackjackRoundActive &&
+      !blackjackResolving &&
+      blackjackHands.length === 1 &&
+      currentHand &&
+      currentHand.cards.length === 2 &&
+      currentHand.cards[0].rank === currentHand.cards[1].rank &&
+      account &&
+      roundCurrency(account.balance ?? 0) >= roundCurrency(currentHand.stake);
+    blackjackSplitButton.disabled = !canSplit;
+  }
+}
+
+function determineNextPlayableHand() {
+  if (blackjackResolving) return;
+  const nextIndex = blackjackHands.findIndex((hand) => hand.status === "playing");
+  if (nextIndex !== -1) {
+    blackjackActiveHandIndex = nextIndex;
+    const label = blackjackHands.length > 1 ? `Рука ${nextIndex + 1}` : "Ваша рука";
+    updateBlackjackStatus(`${label}: ваш ход.`);
+    renderBlackjackTable();
+    updateBlackjackActionButtons();
+  } else {
+    renderBlackjackTable();
+    resolveBlackjackRound();
+  }
+}
+
+function createBlackjackHand(stake, options = {}) {
+  return {
+    id: `hand-${++blackjackHandCounter}`,
+    cards: [],
+    stake: roundCurrency(stake),
+    status: "playing",
+    doubled: false,
+    split: Boolean(options.split),
+    splitFromAce: Boolean(options.splitFromAce),
+    natural: false,
+    result: null,
+  };
 }
 
 function startBlackjackRound(stake) {
   const account = appState.currentAccount;
   if (!account) return;
-  account.balance -= stake;
-  blackjackStake = stake;
   blackjackDeck = createBlackjackDeck();
-  blackjackPlayerCards = [drawCard(), drawCard()];
-  blackjackDealerCards = [drawCard(), drawCard()];
+  blackjackDealerCards = [drawBlackjackCard(), drawBlackjackCard()];
+  const hand = createBlackjackHand(stake);
+  hand.cards.push(drawBlackjackCard(), drawBlackjackCard());
+  const score = calculateHandScore(hand.cards);
+  hand.natural = score.total === 21;
+  hand.status = hand.natural ? "blackjack" : "playing";
+  blackjackHands = [hand];
+  blackjackActiveHandIndex = 0;
+  blackjackDealerRevealed = false;
   blackjackRoundActive = true;
+  blackjackResolving = false;
+  blackjackTotalStake = roundCurrency(stake);
+  account.balance = roundCurrency((account.balance ?? 0) - stake);
   hideFormFeedback(blackjackFeedback);
-  if (blackjackRestartButton) blackjackRestartButton.classList.add("hidden");
-  if (blackjackHitButton) blackjackHitButton.disabled = false;
-  if (blackjackStandButton) blackjackStandButton.disabled = false;
-  if (blackjackStartButton) blackjackStartButton.disabled = true;
-  if (blackjackStatus) blackjackStatus.textContent = "Ваш ход.";
-  renderBlackjackHands();
+  setStakeControlsDisabled(true);
+  if (blackjackDealButton) blackjackDealButton.disabled = true;
   updateBalanceDisplays();
+  updateBlackjackTotals();
+  renderBlackjackTable();
   persistCurrentUser();
-
-  const playerScore = calculateScore(blackjackPlayerCards);
-  if (playerScore === 21) {
-    finishBlackjackRound("blackjack", "Блэкджэк! Вы победили!", 12);
+  if (hand.natural || calculateHandScore(blackjackDealerCards).total === 21) {
+    blackjackDealerRevealed = true;
+    renderBlackjackTable();
+    resolveBlackjackRound();
+  } else {
+    updateBlackjackStatus("Ваш ход. Выберите действие.");
+    updateBlackjackActionButtons();
   }
 }
 
 function handleBlackjackHit() {
-  if (!blackjackRoundActive) return;
-  blackjackPlayerCards.push(drawCard());
-  renderBlackjackHands();
-  const playerScore = calculateScore(blackjackPlayerCards);
-  if (playerScore > 21) {
-    finishBlackjackRound("lose", "Перебор! Вы проиграли.");
+  if (!blackjackRoundActive || blackjackResolving) return;
+  const hand = getCurrentBlackjackHand();
+  if (!hand || hand.status !== "playing") return;
+  if (hand.splitFromAce) return;
+  hand.cards.push(drawBlackjackCard());
+  const score = calculateHandScore(hand.cards);
+  if (score.total > 21) {
+    hand.status = "bust";
+    updateBlackjackStatus("Перебор! Рука завершена.");
+    determineNextPlayableHand();
+  } else if (score.total === 21) {
+    hand.status = "stood";
+    updateBlackjackStatus("21 очко! Ожидаем дилера.");
+    determineNextPlayableHand();
+  } else {
+    renderBlackjackTable();
+    updateBlackjackStatus("Выберите следующее действие.");
+    updateBlackjackActionButtons();
   }
 }
 
 function handleBlackjackStand() {
-  if (!blackjackRoundActive) return;
-  if (blackjackHitButton) blackjackHitButton.disabled = true;
-  if (blackjackStandButton) blackjackStandButton.disabled = true;
+  if (!blackjackRoundActive || blackjackResolving) return;
+  const hand = getCurrentBlackjackHand();
+  if (!hand || hand.status !== "playing") return;
+  hand.status = "stood";
+  updateBlackjackStatus("Рука завершена. Ожидаем дилера.");
+  determineNextPlayableHand();
+}
 
-  let dealerScore = calculateScore(blackjackDealerCards);
-  while (dealerScore < 17) {
-    blackjackDealerCards.push(drawCard());
-    dealerScore = calculateScore(blackjackDealerCards);
-    renderBlackjackHands();
+function handleBlackjackDouble() {
+  if (!blackjackRoundActive || blackjackResolving) return;
+  const hand = getCurrentBlackjackHand();
+  const account = appState.currentAccount;
+  if (!hand || hand.status !== "playing" || !account) return;
+  if (hand.cards.length !== 2 || hand.doubled) return;
+  if (roundCurrency(account.balance ?? 0) < roundCurrency(hand.stake)) {
+    showFormFeedback(blackjackFeedback, "Недостаточно средств для удвоения.");
+    return;
   }
+  account.balance = roundCurrency((account.balance ?? 0) - roundCurrency(hand.stake));
+  hand.stake = roundCurrency(hand.stake * 2);
+  hand.doubled = true;
+  blackjackTotalStake = roundCurrency(
+    blackjackHands.reduce((total, current) => total + current.stake, 0)
+  );
+  updateBalanceDisplays();
+  updateBlackjackTotals();
+  persistCurrentUser();
+  hand.cards.push(drawBlackjackCard());
+  const score = calculateHandScore(hand.cards);
+  hand.status = score.total > 21 ? "bust" : "stood";
+  updateBlackjackStatus("Удвоение выполнено. Ожидаем дилера.");
+  determineNextPlayableHand();
+}
 
-  const playerScore = calculateScore(blackjackPlayerCards);
-  dealerScore = calculateScore(blackjackDealerCards);
+function handleBlackjackSplit() {
+  if (!blackjackRoundActive || blackjackResolving) return;
+  const hand = getCurrentBlackjackHand();
+  const account = appState.currentAccount;
+  if (!hand || hand.status !== "playing" || !account) return;
+  if (blackjackHands.length !== 1) return;
+  if (hand.cards.length !== 2 || hand.cards[0].rank !== hand.cards[1].rank) return;
+  if (roundCurrency(account.balance ?? 0) < roundCurrency(hand.stake)) {
+    showFormFeedback(blackjackFeedback, "Недостаточно средств для сплита.");
+    return;
+  }
+  account.balance = roundCurrency((account.balance ?? 0) - roundCurrency(hand.stake));
+  const [firstCard, secondCard] = hand.cards;
+  const firstHand = createBlackjackHand(hand.stake, {
+    split: true,
+    splitFromAce: firstCard.rank === "A",
+  });
+  const secondHand = createBlackjackHand(hand.stake, {
+    split: true,
+    splitFromAce: secondCard.rank === "A",
+  });
+  firstHand.cards.push(firstCard, drawBlackjackCard());
+  secondHand.cards.push(secondCard, drawBlackjackCard());
+  firstHand.status = firstHand.splitFromAce ? "stood" : "playing";
+  secondHand.status = secondHand.splitFromAce ? "stood" : "playing";
+  firstHand.natural = false;
+  secondHand.natural = false;
+  blackjackHands = [firstHand, secondHand];
+  blackjackTotalStake = roundCurrency(
+    blackjackHands.reduce((total, current) => total + current.stake, 0)
+  );
+  updateBalanceDisplays();
+  updateBlackjackTotals();
+  persistCurrentUser();
+  updateBlackjackStatus("Руки разделены. Ваш ход.");
+  determineNextPlayableHand();
+}
 
-  if (dealerScore > 21) {
-    finishBlackjackRound("win", "Дилер перебрал. Победа!", 10);
-  } else if (dealerScore === playerScore) {
-    finishBlackjackRound("push", "Ничья с дилером.");
-  } else if (playerScore > dealerScore) {
-    finishBlackjackRound("win", "Вы победили!", 10);
+function handleBlackjackDeal(event) {
+  event?.preventDefault?.();
+  if (!appState.currentAccount) {
+    toggleAuthView("login");
+    showPage("auth");
+    showFormFeedback(blackjackFeedback, "Авторизуйтесь, чтобы сыграть.");
+    return;
+  }
+  if (blackjackRoundActive || blackjackResolving) return;
+  const stakeValue = sanitizeStake(Number.parseFloat(blackjackStakeInput?.value ?? ""));
+  if (!Number.isFinite(stakeValue) || stakeValue < BLACKJACK_MIN_BET) {
+    showFormFeedback(
+      blackjackFeedback,
+      `Минимальная ставка ${formatUsd(BLACKJACK_MIN_BET)}.`
+    );
+    return;
+  }
+  if ((appState.currentAccount.balance ?? 0) < stakeValue) {
+    showFormFeedback(blackjackFeedback, "Недостаточно средств на балансе.");
+    return;
+  }
+  hideFormFeedback(blackjackFeedback);
+  blackjackTotalStake = roundCurrency(stakeValue);
+  startBlackjackRound(stakeValue);
+  if (blackjackLiveEnabled) {
+    pushBlackjackLiveEntry({
+      name: appState.currentAccount.nickname || "Вы",
+      stake: stakeValue,
+      isPlayer: true,
+    });
+  }
+}
+
+async function resolveBlackjackRound() {
+  if (blackjackResolving) return;
+  blackjackResolving = true;
+  blackjackRoundActive = false;
+  if (blackjackDealButton) blackjackDealButton.disabled = false;
+  updateBlackjackActionButtons();
+  if (!blackjackDealerRevealed) {
+    blackjackDealerRevealed = true;
+    renderBlackjackTable();
+    await wait(400);
+  }
+  let dealerScoreData = calculateHandScore(blackjackDealerCards);
+  while (dealerScoreData.total < 17) {
+    blackjackDealerCards.push(drawBlackjackCard());
+    renderBlackjackTable();
+    await wait(500);
+    dealerScoreData = calculateHandScore(blackjackDealerCards);
+  }
+  const dealerScore = dealerScoreData.total;
+  const dealerHasBlackjack = blackjackDealerCards.length === 2 && dealerScore === 21;
+  const account = appState.currentAccount;
+  const detailParts = [];
+  let totalStake = 0;
+  let totalDelta = 0;
+  let wins = 0;
+  let losses = 0;
+  blackjackHands.forEach((hand, index) => {
+    const score = calculateHandScore(hand.cards);
+    let payout = 0;
+    let message = "Поражение";
+    let outcomeType = "lose";
+    if (hand.status === "bust") {
+      message = "Перебор";
+      outcomeType = "lose";
+    } else if (hand.natural && !hand.split && !dealerHasBlackjack) {
+      payout = roundCurrency(hand.stake * 2.5);
+      message = "Блэкджэк";
+      outcomeType = "blackjack";
+    } else if (hand.natural && dealerHasBlackjack) {
+      payout = hand.stake;
+      message = "Ничья";
+      outcomeType = "push";
+    } else if (dealerHasBlackjack && hand.status !== "bust") {
+      message = "Дилер блэкджэк";
+      outcomeType = "lose";
+    } else if (score.total > 21) {
+      message = "Перебор";
+      outcomeType = "lose";
+    } else if (dealerScore > 21) {
+      payout = roundCurrency(hand.stake * 2);
+      message = "Победа";
+      outcomeType = "win";
+    } else if (score.total > dealerScore) {
+      payout = roundCurrency(hand.stake * 2);
+      message = "Победа";
+      outcomeType = "win";
+    } else if (score.total === dealerScore) {
+      payout = hand.stake;
+      message = "Ничья";
+      outcomeType = "push";
+    }
+    const delta = roundCurrency(payout - hand.stake);
+    totalStake = roundCurrency(totalStake + hand.stake);
+    totalDelta = roundCurrency(totalDelta + delta);
+    if (account && payout > 0) {
+      account.balance = roundCurrency((account.balance ?? 0) + payout);
+    }
+    if (outcomeType === "win" || outcomeType === "blackjack") {
+      wins += 1;
+    } else if (outcomeType === "lose") {
+      losses += 1;
+    }
+    hand.result = { type: outcomeType, message };
+    const deltaLabel =
+      delta > 0
+        ? ` (+${formatUsd(delta)})`
+        : delta < 0
+        ? ` (-${formatUsd(Math.abs(delta))})`
+        : "";
+    const label = blackjackHands.length > 1 ? `Рука ${index + 1}` : "Рука";
+    detailParts.push(`${label}: ${message}${deltaLabel}`);
+  });
+  if (account) {
+    if (wins > 0) {
+      account.wins = Number(account.wins ?? 0) + wins;
+      account.favouriteGame = "Блэкджэк";
+      account.streak = Number(account.streak ?? 0) + wins;
+      gainExperience(wins * 8);
+    } else if (losses > 0) {
+      account.streak = 0;
+    }
+  }
+  blackjackTotalStake = 0;
+  setStakeControlsDisabled(false);
+  updateBlackjackTotals();
+  updateBalanceDisplays();
+  updateDashboardData();
+  renderBlackjackTable();
+  persistCurrentUser();
+  const resultLabel =
+    totalDelta > 0
+      ? `Победа ${formatUsd(totalDelta)}`
+      : totalDelta < 0
+      ? `Поражение ${formatUsd(Math.abs(totalDelta))}`
+      : "Ничья";
+  updateBlackjackStatus(`Раунд завершён: ${resultLabel}.`);
+  if (totalDelta > 0) {
+    showFormFeedback(
+      blackjackFeedback,
+      `Вы выиграли ${formatUsd(totalDelta)}!`,
+      true
+    );
+  } else if (totalDelta < 0) {
+    showFormFeedback(
+      blackjackFeedback,
+      `Проигрыш ${formatUsd(Math.abs(totalDelta))}.`,
+      false
+    );
   } else {
-    finishBlackjackRound("lose", "Победил дилер.");
+    showFormFeedback(blackjackFeedback, "Ничья. Ставка возвращена.", true);
+  }
+  addGameHistoryEntry({
+    game: "Блэкджэк",
+    detail: detailParts.join(" • "),
+    stake: totalStake,
+    delta: totalDelta,
+    result: totalDelta > 0 ? "win" : totalDelta < 0 ? "lose" : "draw",
+  });
+  blackjackResolving = false;
+  if (blackjackLiveEnabled) {
+    scheduleBlackjackLiveEntry();
   }
 }
 
-function handleBlackjackRestart() {
-  initializeBlackjackState();
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
+
+function pushBlackjackLiveEntry(entry) {
+  blackjackLiveEntries.unshift(entry);
+  if (blackjackLiveEntries.length > BLACKJACK_MAX_LIVE_ENTRIES) {
+    blackjackLiveEntries.length = BLACKJACK_MAX_LIVE_ENTRIES;
+  }
+  renderBlackjackLiveBets();
+}
+
+function renderBlackjackLiveBets() {
+  if (!blackjackLiveList) return;
+  blackjackLiveList.innerHTML = blackjackLiveEntries
+    .map((entry) => {
+      const classes = entry.isPlayer ? " class=\"is-player\"" : "";
+      return `<li${classes}><span>${entry.name}</span><span>${formatUsd(entry.stake)}</span></li>`;
+    })
+    .join("");
+  if (blackjackLiveFeed) {
+    blackjackLiveFeed.classList.toggle("hidden", !blackjackLiveEnabled);
+  }
+}
+
+function scheduleBlackjackLiveEntry() {
+  stopBlackjackLiveTimer();
+  if (!blackjackLiveEnabled) return;
+  const delay = 2800 + Math.random() * 4200;
+  blackjackLiveTimer = setTimeout(() => {
+    const name = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+    const stake = roundCurrency(
+      BLACKJACK_MIN_BET * (2 + Math.floor(Math.random() * 10))
+    );
+    pushBlackjackLiveEntry({ name, stake });
+    scheduleBlackjackLiveEntry();
+  }, delay);
+}
+
+function stopBlackjackLiveTimer() {
+  if (blackjackLiveTimer) {
+    clearTimeout(blackjackLiveTimer);
+    blackjackLiveTimer = null;
+  }
+}
+
+function toggleBlackjackLive(enabled) {
+  blackjackLiveEnabled = enabled;
+  if (blackjackLiveToggle) {
+    blackjackLiveToggle.checked = enabled;
+  }
+  if (!enabled) {
+    stopBlackjackLiveTimer();
+    blackjackLiveEntries = [];
+  } else {
+    scheduleBlackjackLiveEntry();
+  }
+  renderBlackjackLiveBets();
+}
+
 
 function getRouletteColor(number) {
   if (number === 0) return "green";
@@ -1210,12 +1800,12 @@ function handleRouletteBet(event) {
   const account = appState.currentAccount;
   if (!account) return;
 
-  if (account.balance < stake) {
+  if (roundCurrency(account.balance ?? 0) < roundCurrency(stake)) {
     showFormFeedback(rouletteFeedback, "Недостаточно средств на балансе.");
     return;
   }
 
-  account.balance -= stake;
+  account.balance = roundCurrency((account.balance ?? 0) - stake);
   roulettePlayerBet = { stake, color };
   appendRouletteBet({
     name: account.nickname || "Вы",
@@ -1245,9 +1835,11 @@ function handleDeposit() {
     hideDropdown();
     return;
   }
-  appState.currentAccount.balance += 1000;
+  appState.currentAccount.balance = roundCurrency(
+    (appState.currentAccount.balance ?? 0) + 1000
+  );
   gainExperience(3);
-  showFeedback("Баланс пополнен на 1 000₽");
+  showFeedback(`Баланс пополнен на ${formatCurrency(1000)}.`);
   updateDashboardData();
   persistCurrentUser();
   hideDropdown();
@@ -1412,14 +2004,16 @@ function handleWithdraw() {
     hideDropdown();
     return;
   }
-  if (appState.currentAccount.balance < 1000) {
+  if (roundCurrency(appState.currentAccount.balance ?? 0) < 1000) {
     showFeedback("Недостаточно средств для вывода.");
     hideDropdown();
     return;
   }
-  appState.currentAccount.balance -= 1000;
+  appState.currentAccount.balance = roundCurrency(
+    (appState.currentAccount.balance ?? 0) - 1000
+  );
   appState.currentAccount.streak = 0;
-  showFeedback("Вы вывели 1 000₽");
+  showFeedback(`Вы вывели ${formatCurrency(1000)}.`);
   updateDashboardData();
   persistCurrentUser();
   hideDropdown();
@@ -1544,6 +2138,7 @@ function handleLogout() {
   appState.activeGame = null;
   clearCurrentUser();
   stopRouletteCycle();
+  initializeBlackjackState();
   hideDropdown();
   setAuthenticatedState(false);
   updateDashboardData();
@@ -1567,6 +2162,7 @@ function openGame(gameKey) {
     showPage("roulette");
   } else if (gameKey === "blackjack") {
     showPage("blackjack");
+    initializeBlackjackState();
   }
 }
 
@@ -1767,32 +2363,24 @@ rouletteStakeInput?.addEventListener("input", () => {
     resetQuickBetButtons();
   }
 });
-blackjackForm?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (!appState.currentAccount) {
-    toggleAuthView("login");
-    showPage("auth");
-    showFormFeedback(blackjackFeedback, "Авторизуйтесь, чтобы сыграть.");
-    return;
-  }
-  if (blackjackRoundActive) return;
-  const formData = new FormData(blackjackForm);
-  const stake = Number(formData.get("stake"));
-  if (!Number.isFinite(stake) || stake < 100) {
-    showFormFeedback(blackjackFeedback, "Минимальная ставка 100₽.");
-    return;
-  }
-  if (appState.currentAccount.balance < stake) {
-    showFormFeedback(blackjackFeedback, "Недостаточно средств на балансе.");
-    return;
-  }
-  startBlackjackRound(stake);
-});
 
-
+blackjackForm?.addEventListener("submit", handleBlackjackDeal);
+blackjackDealButton?.addEventListener("click", handleBlackjackDeal);
 blackjackHitButton?.addEventListener("click", handleBlackjackHit);
 blackjackStandButton?.addEventListener("click", handleBlackjackStand);
-blackjackRestartButton?.addEventListener("click", handleBlackjackRestart);
+blackjackDoubleButton?.addEventListener("click", handleBlackjackDouble);
+blackjackSplitButton?.addEventListener("click", handleBlackjackSplit);
+
+blackjackStakeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    adjustBlackjackStake(button.dataset.action);
+  });
+});
+
+blackjackStakeInput?.addEventListener("input", updateBlackjackStakeDisplay);
+blackjackLiveToggle?.addEventListener("change", () => {
+  toggleBlackjackLive(blackjackLiveToggle.checked);
+});
 
 gameLaunchButtons.forEach((button) => {
   button.addEventListener("click", () => {
