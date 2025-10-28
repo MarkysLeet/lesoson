@@ -373,6 +373,16 @@ main {
   transition: border var(--transition), box-shadow var(--transition);
 }
 
+.input-group input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.input-group input[type="number"]::-webkit-outer-spin-button,
+.input-group input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .rules-check {
   display: flex;
   align-items: flex-start;
@@ -932,6 +942,15 @@ body.dark-mode .game-card {
   gap: 20px;
 }
 
+.game-controls.blackjack {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
+}
+
 .bet-form {
   display: grid;
   gap: 18px;
@@ -1008,11 +1027,14 @@ body.dark-mode .game-card {
 }
 
 .other-bets {
-  background: rgba(81, 192, 255, 0.12);
+  background: var(--glass-bg);
   border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
   padding: 24px;
   display: grid;
   gap: 16px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(12px);
 }
 
 .other-bets h3 {
@@ -1031,19 +1053,56 @@ body.dark-mode .game-card {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  background: rgba(9, 18, 40, 0.55);
+  background: rgba(9, 18, 40, 0.6);
   padding: 12px 16px;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .other-bets-list span {
   font-weight: 600;
 }
 
-.game-controls.blackjack {
+.other-bets-list li.bet-result {
   display: grid;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.other-bets-list li.bet-result .player {
+  font-weight: 600;
+}
+
+.other-bets-list li.bet-result .stake {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.other-bets-list li.bet-result .result-tag {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.other-bets-list li.bet-result.win .result-tag {
+  color: #3cd985;
+}
+
+.other-bets-list li.bet-result.loss .result-tag {
+  color: #ff5f72;
+}
+
+@media (max-width: 680px) {
+  .other-bets-list li.bet-result {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .other-bets-list li.bet-result .stake,
+  .other-bets-list li.bet-result .result-tag {
+    font-size: 14px;
+  }
 }
 
 .blackjack-actions {
@@ -1065,9 +1124,12 @@ body.dark-mode .game-card {
 .blackjack-table {
   display: grid;
   gap: 18px;
-  background: rgba(81, 192, 255, 0.12);
+  background: rgba(12, 24, 55, 0.65);
   padding: 20px;
   border-radius: var(--radius-md);
+  border: 1px solid rgba(79, 123, 255, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(81, 192, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .blackjack-table .hand {
