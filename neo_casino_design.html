@@ -39,6 +39,7 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/zustand/umd/zustand.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="dark-mode">
   <div class="background-gradient"></div>
@@ -67,11 +68,6 @@
           </div>
         </div>
         <p class="balance-feedback hidden" id="balanceFeedback"></p>
-      </div>
-      <div class="toggles">
-        <button class="mode-toggle" id="modeToggle" aria-label="Переключить тему">
-          <span class="toggle-icon">🌙</span>
-        </button>
       </div>
     </div>
   </header>
@@ -505,6 +501,10 @@
     </div>
   </footer>
 
-  <script src="neo_casino_interactions.js"></script>
+  <script
+    type="text/babel"
+    data-presets='["env", ["react", {"runtime": "classic"}]]'
+    src="neo_casino_interactions.js"
+  ></script>
 </body>
 </html>

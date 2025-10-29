@@ -1,5 +1,4 @@
 const body = document.body;
-const modeToggle = document.getElementById("modeToggle");
 const tabs = document.querySelectorAll(".menu-item");
 const tabContents = document.querySelectorAll(".tab-content");
 const switchOptions = document.querySelectorAll(".switch-option");
@@ -1420,12 +1419,6 @@ function initializeAuth() {
   }
 }
 
-modeToggle?.addEventListener("click", () => {
-  body.classList.toggle("dark-mode");
-  body.classList.toggle("light-mode");
-  const isDark = body.classList.contains("dark-mode");
-  modeToggle.querySelector(".toggle-icon").textContent = isDark ? "☀️" : "🌙";
-});
 
 tabs.forEach((tab) => {
   if (!tab.dataset.tab) return;

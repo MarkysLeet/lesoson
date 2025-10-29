@@ -17,17 +17,6 @@
   --radius-sm: 14px;
 }
 
-body.light-mode {
-  --bg-gradient-start: #f5f7ff;
-  --bg-gradient-end: #eef3ff;
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(15, 27, 54, 0.08);
-  --text-main: #101934;
-  --text-muted: rgba(16, 25, 52, 0.65);
-  --shadow-soft: 0 28px 55px rgba(12, 24, 55, 0.18);
-  --shadow-sharp: 0 18px 40px rgba(12, 24, 55, 0.25);
-}
-
 * {
   box-sizing: border-box;
 }
@@ -160,33 +149,6 @@ body.dark-mode .top-bar {
   display: flex;
   align-items: center;
   gap: 20px;
-}
-
-.toggles {
-  display: flex;
-  gap: 12px;
-}
-
-.mode-toggle {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.65);
-  box-shadow: var(--shadow-soft);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: transform var(--transition), background var(--transition);
-}
-
-body.dark-mode .mode-toggle {
-  background: rgba(16, 28, 60, 0.9);
-  color: #f5f7ff;
-}
-
-.mode-toggle:hover {
-  transform: translateY(-3px);
 }
 
 .user-controls {
