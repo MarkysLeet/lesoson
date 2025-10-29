@@ -1122,6 +1122,23 @@ function showFeedback(message) {
   }, 3200);
 }
 
+function hideDropdown() {
+  if (!balanceDropdown) return;
+  balanceDropdown.classList.add("hidden");
+  balanceButton?.setAttribute("aria-expanded", "false");
+}
+
+function updateNavState() {
+  navLinks.forEach((link) => {
+    const target = link.dataset.target;
+    if (target === "auth") {
+      link.classList.toggle("hidden", appState.isAuthenticated);
+    } else if (target === "home") {
+      link.classList.remove("hidden");
+    }
+  });
+}
+
 function setActiveNav(target) {
   navLinks.forEach((link) => {
     const matches = target && link.dataset.target === target;
@@ -2320,13 +2337,93 @@ document.querySelector(".switch-option.active")?.click();
 
 const CrashReact = window.React;
 const CrashReactDOM = window.ReactDOM;
-const crashMotion = window.framerMotion;
-const crashZustand = window.zustand;
+const crashMotionSource = window.framerMotion || window.motion;
+const crashZustandSource = window.zustand;
 
-if (crashRoot && CrashReact && CrashReactDOM && crashMotion && crashZustand?.create) {
-  const { useState, useEffect, useMemo, useRef } = CrashReact;
-  const { motion, AnimatePresence } = crashMotion;
-  const createCrashStore = crashZustand.create;
+if (crashRoot && CrashReact && CrashReactDOM) {
+  const {
+    useState,
+    useEffect,
+    useMemo,
+    useRef,
+    useSyncExternalStore,
+    Fragment,
+    forwardRef,
+    createElement,
+  } = CrashReact;
+
+  const fallbackMotionLib = (() => {
+    const componentFactory = new Proxy(
+      {},
+      {
+        get(_, tag) {
+          return forwardRef(({ children, ...rest }, ref) =>
+            createElement(tag, { ref, ...rest }, children)
+          );
+        },
+      }
+    );
+    return {
+      motion: componentFactory,
+      AnimatePresence: ({ children }) =>
+        createElement(Fragment, null, children),
+    };
+  })();
+
+  const motion = crashMotionSource?.motion ?? fallbackMotionLib.motion;
+  const AnimatePresence =
+    crashMotionSource?.AnimatePresence ?? fallbackMotionLib.AnimatePresence;
+
+  const createFallbackStore = (initializer) => {
+    let state;
+    const listeners = new Set();
+
+    const subscribe = (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    };
+
+    const getState = () => state;
+
+    const setState = (partial, replace) => {
+      const current = state;
+      const nextState =
+        typeof partial === "function" ? partial(current) : partial;
+      if (replace) {
+        state = nextState;
+      } else if (nextState && typeof nextState === "object") {
+        state = { ...current, ...nextState };
+      } else {
+        state = nextState;
+      }
+      listeners.forEach((listener) => listener());
+    };
+
+    state = initializer(setState, getState, {
+      setState,
+      getState,
+      subscribe,
+    });
+
+    const useStore = (selector = (value) => value) =>
+      useSyncExternalStore(
+        subscribe,
+        () => selector(state),
+        () => selector(state)
+      );
+
+    useStore.setState = setState;
+    useStore.getState = getState;
+    useStore.subscribe = subscribe;
+    return useStore;
+  };
+
+  const crashCreate =
+    typeof crashZustandSource === "function"
+      ? crashZustandSource
+      : crashZustandSource?.create ?? createFallbackStore;
+
+  const createCrashStore = crashCreate;
 
   const CRASH_RATE = 1.85;
   const COUNTDOWN_START = 5;
