@@ -1,29 +1,31 @@
 :root {
-  --bg-gradient-start: #eef3ff;
-  --bg-gradient-end: #f4f8ff;
-  --glass-bg: rgba(12, 24, 55, 0.55);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --primary: linear-gradient(135deg, #29a9ff, #4f7bff);
-  --secondary: linear-gradient(135deg, #51c0ff, #7ad5ff);
-  --accent-blue: #4f7bff;
-  --accent-gold: #f5c869;
-  --text-main: #0f1b36;
-  --text-muted: rgba(255, 255, 255, 0.7);
-  --shadow-soft: 0 20px 45px rgba(12, 24, 55, 0.2);
-  --shadow-sharp: 0 16px 35px rgba(12, 24, 55, 0.35);
-  --transition: 0.3s ease;
-  --radius-lg: 24px;
-  --radius-md: 18px;
-  --radius-sm: 12px;
+  --bg-gradient-start: #050a18;
+  --bg-gradient-end: #0b0f1a;
+  --glass-bg: rgba(13, 20, 38, 0.72);
+  --glass-border: rgba(0, 212, 255, 0.18);
+  --primary: linear-gradient(135deg, #00d4ff, #a970ff);
+  --secondary: linear-gradient(135deg, rgba(0, 212, 255, 0.85), rgba(169, 112, 255, 0.85));
+  --accent-blue: #00d4ff;
+  --accent-gold: #a970ff;
+  --text-main: #e8edff;
+  --text-muted: rgba(223, 231, 255, 0.72);
+  --shadow-soft: 0 30px 60px rgba(3, 13, 35, 0.45);
+  --shadow-sharp: 0 25px 50px rgba(0, 212, 255, 0.25);
+  --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-lg: 26px;
+  --radius-md: 20px;
+  --radius-sm: 14px;
 }
 
-body.dark-mode {
-  --bg-gradient-start: #050914;
-  --bg-gradient-end: #0a1326;
-  --glass-bg: rgba(12, 24, 55, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --text-main: #f5f7ff;
-  --text-muted: rgba(245, 247, 255, 0.75);
+body.light-mode {
+  --bg-gradient-start: #f5f7ff;
+  --bg-gradient-end: #eef3ff;
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(15, 27, 54, 0.08);
+  --text-main: #101934;
+  --text-muted: rgba(16, 25, 52, 0.65);
+  --shadow-soft: 0 28px 55px rgba(12, 24, 55, 0.18);
+  --shadow-sharp: 0 18px 40px rgba(12, 24, 55, 0.25);
 }
 
 * {
@@ -43,9 +45,9 @@ body {
 .background-gradient {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at 10% 20%, rgba(118, 164, 255, 0.35), transparent 55%),
-    radial-gradient(circle at 80% 0%, rgba(101, 205, 255, 0.3), transparent 50%),
-    linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+  background: radial-gradient(circle at 15% 20%, rgba(0, 212, 255, 0.16), transparent 55%),
+    radial-gradient(circle at 80% 8%, rgba(169, 112, 255, 0.22), transparent 50%),
+    linear-gradient(140deg, var(--bg-gradient-start), var(--bg-gradient-end));
   z-index: -3;
 }
 
@@ -942,15 +944,6 @@ body.dark-mode .game-card {
   gap: 20px;
 }
 
-.game-controls.blackjack {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: 24px;
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(12px);
-}
-
 .bet-form {
   display: grid;
   gap: 18px;
@@ -976,6 +969,107 @@ body.dark-mode .game-card {
   gap: 12px;
   cursor: pointer;
   font-weight: 500;
+}
+
+.crash-shell {
+  position: relative;
+  padding: 36px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(140deg, rgba(13, 22, 45, 0.78), rgba(13, 19, 34, 0.66));
+  border: 1px solid rgba(0, 212, 255, 0.22);
+  box-shadow: var(--shadow-sharp);
+  overflow: hidden;
+}
+
+.crash-shell::before {
+  content: "";
+  position: absolute;
+  inset: -120px;
+  background: radial-gradient(circle at 20% 20%, rgba(0, 212, 255, 0.16), transparent 45%),
+    radial-gradient(circle at 75% 15%, rgba(169, 112, 255, 0.22), transparent 40%);
+  opacity: 0.85;
+  filter: blur(45px);
+  z-index: -1;
+  transform: rotate(6deg);
+}
+
+.crash-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.crash-headings h2 {
+  margin: 0;
+  font-size: 34px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.crash-subtitle {
+  margin: 10px 0 0;
+  max-width: 520px;
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.crash-app-root {
+  position: relative;
+  min-height: 520px;
+  border-radius: calc(var(--radius-lg) - 6px);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  background: rgba(8, 14, 28, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.crash-loading {
+  display: grid;
+  place-items: center;
+  min-height: 520px;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(0, 212, 255, 0.8);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+.crash-fairness {
+  margin: 48px auto 64px;
+  max-width: 960px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 212, 255, 0.12);
+  background: rgba(8, 14, 28, 0.7);
+  box-shadow: 0 18px 40px rgba(3, 13, 35, 0.45);
+  backdrop-filter: blur(20px);
+}
+
+.fairness-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 28px;
+}
+
+.fairness-text {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.fairness-hash {
+  margin: 0;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: rgba(0, 212, 255, 0.85);
 }
 
 .bet-choices input[type="radio"] {
@@ -1103,66 +1197,6 @@ body.dark-mode .game-card {
   .other-bets-list li.bet-result .result-tag {
     font-size: 14px;
   }
-}
-
-.blackjack-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.blackjack-actions .btn {
-  width: 100%;
-}
-
-.blackjack-status {
-  margin: 0;
-  font-size: 16px;
-  color: #fff;
-}
-
-.blackjack-table {
-  display: grid;
-  gap: 18px;
-  background: rgba(12, 24, 55, 0.65);
-  padding: 20px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(79, 123, 255, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(81, 192, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.blackjack-table .hand {
-  display: grid;
-  gap: 10px;
-}
-
-.blackjack-table .hand h3 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.blackjack-table .cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.blackjack-table .card {
-  background: rgba(9, 18, 40, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
-  padding: 10px 14px;
-  min-width: 44px;
-  text-align: center;
-  font-weight: 600;
-  box-shadow: var(--shadow-soft);
-}
-
-.blackjack-table .score {
-  margin: 0;
-  font-size: 15px;
-  color: var(--text-muted);
 }
 
 
@@ -1317,9 +1351,6 @@ body.dark-mode .ticker-track span::before {
 
 @media (max-width: 520px) {
   .auth-actions {
-    grid-template-columns: 1fr;
-  }
-  .blackjack-actions {
     grid-template-columns: 1fr;
   }
   .hero-actions {

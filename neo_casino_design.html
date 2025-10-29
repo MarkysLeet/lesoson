@@ -6,10 +6,41 @@
   <title>NeoCasino — концепт дизайна</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap"
+    rel="stylesheet"
+  />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '.dark-mode'],
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#0B0F1A',
+            neon: '#00D4FF',
+            orchid: '#A970FF',
+            glass: 'rgba(9, 14, 31, 0.75)',
+          },
+          boxShadow: {
+            aurora: '0 25px 50px -12px rgba(0, 212, 255, 0.35)',
+            neon: '0 0 35px rgba(0, 212, 255, 0.45)',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+            poppins: ['Poppins', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
   <link rel="stylesheet" href="neo_casino_styles.css" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/zustand/umd/zustand.min.js"></script>
 </head>
-<body class="light-mode">
+<body class="dark-mode">
   <div class="background-gradient"></div>
   <div class="floating-gifts" aria-hidden="true">
     <div class="gift"></div>
@@ -315,12 +346,12 @@
           <p class="rating">★ 4.8</p>
           <button class="btn secondary game-launch" data-i18n="games.play">Играть</button>
         </article>
-        <article class="game-card offline" data-game="blackjack">
+        <article class="game-card online" data-game="crash">
           <figure class="game-thumb">
-            <img src="https://i.imgur.com/txlCdxO.png" alt="Логотип блэкджека" loading="lazy" />
+            <img src="https://i.imgur.com/2lY0cV6.png" alt="Ракета NeoCasino" loading="lazy" />
           </figure>
-          <h3 data-i18n="games.blackjack.title">Оффлайн Блэкджэк</h3>
-          <p class="rating">★ 4.7</p>
+          <h3 data-i18n="games.crash.title">Rocket Crash</h3>
+          <p class="rating">★ 4.9</p>
           <button class="btn secondary game-launch" data-i18n="games.play">Играть</button>
         </article>
         <article class="game-card online">
@@ -448,54 +479,31 @@
     </div>
   </section>
 
-  <section id="blackjackGame" class="page-block game-page hidden" data-page="blackjack" data-requires-auth="true">
-    <div class="game-layout glassy">
-      <div class="game-header">
-        <div class="game-title">
-          <button class="btn outline back-to-lobby" data-target="home" data-i18n="blackjack.back">← В лобби</button>
-          <h2 data-i18n="blackjack.title">Блэкджэк</h2>
+  <section id="crashGame" class="page-block game-page hidden" data-page="crash" data-requires-auth="true">
+    <div class="crash-shell glassy">
+      <div class="crash-header">
+        <button class="btn outline back-to-lobby" data-target="home" data-i18n="crash.back">← В лобби</button>
+        <div class="crash-headings">
+          <h2 data-i18n="crash.title">Rocket Crash</h2>
+          <p class="crash-subtitle" data-i18n="crash.subtitle">
+            Делайте ставку, задайте авто-кэшаут и успейте забрать выигрыш до краша ракеты.
+          </p>
         </div>
-        <p data-i18n="blackjack.subtitle">Выбирайте ставку, тяните карты и попытайтесь обыграть дилера.</p>
       </div>
-      <div class="game-body">
-        <div class="game-visual">
-          <img src="https://i.imgur.com/txlCdxO.png" alt="Стол для блэкджека" />
-        </div>
-        <div class="game-controls blackjack">
-          <form id="blackjackForm" class="bet-form">
-            <label class="input-group">
-              <span data-i18n="blackjack.stakeLabel">Размер ставки (₺)</span>
-              <input type="number" name="stake" min="100" step="50" placeholder="Минимум 100₺" data-i18n-placeholder="blackjack.stakePlaceholder" required />
-            </label>
-            <div class="blackjack-actions">
-              <button type="submit" class="btn primary" id="blackjackStart" data-i18n="blackjack.start">Начать раунд</button>
-              <button type="button" class="btn secondary" id="blackjackHit" data-i18n="blackjack.hit">Взять карту</button>
-              <button type="button" class="btn outline" id="blackjackStand" data-i18n="blackjack.stand">Хватит</button>
-              <button type="button" class="btn secondary hidden" id="blackjackRestart" data-i18n="blackjack.restart">Новая ставка</button>
-            </div>
-          </form>
-          <div class="blackjack-table">
-            <div class="hand">
-              <h3 data-i18n="blackjack.dealer">Дилер</h3>
-              <div class="cards" id="dealerCards"></div>
-              <p class="score" data-i18n-html="blackjack.dealerScore">Очки: <span id="dealerScore">0</span></p>
-            </div>
-            <div class="hand">
-              <h3 data-i18n="blackjack.player">Вы</h3>
-              <div class="cards" id="playerCards"></div>
-              <p class="score" data-i18n-html="blackjack.playerScore">Очки: <span id="playerScore">0</span></p>
-            </div>
-          </div>
-          <p class="blackjack-status" id="blackjackStatus">Сделайте ставку, чтобы начать.</p>
-          <p class="form-feedback hidden" id="blackjackFeedback"></p>
-        </div>
-        <aside class="other-bets">
-          <h3 data-i18n="blackjack.sidebarTitle">Ставки других игроков</h3>
-          <ul id="blackjackOtherBets" class="other-bets-list"></ul>
-        </aside>
+      <div id="crashGameRoot" class="crash-app-root">
+        <div class="crash-loading" data-i18n="crash.loading">Загрузка реактивного интерфейса…</div>
       </div>
     </div>
   </section>
+
+  <footer class="crash-fairness" id="crashFairness">
+    <div class="fairness-inner">
+      <p class="fairness-text" data-i18n="crash.fairnessDisclaimer">
+        Demo-режим. Обучающие цели. Без денежных операций.
+      </p>
+      <p class="fairness-hash" id="crashHashDisplay"></p>
+    </div>
+  </footer>
 
   <script src="neo_casino_interactions.js"></script>
 </body>

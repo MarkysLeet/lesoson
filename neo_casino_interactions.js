@@ -42,18 +42,8 @@ const rouletteFeedback = document.getElementById("rouletteFeedback");
 const rouletteOtherBets = document.getElementById("rouletteOtherBets");
 const rouletteStartButton = document.getElementById("rouletteStart");
 
-const blackjackForm = document.getElementById("blackjackForm");
-const blackjackStatus = document.getElementById("blackjackStatus");
-const blackjackFeedback = document.getElementById("blackjackFeedback");
-const blackjackHitButton = document.getElementById("blackjackHit");
-const blackjackStandButton = document.getElementById("blackjackStand");
-const blackjackRestartButton = document.getElementById("blackjackRestart");
-const blackjackStartButton = document.getElementById("blackjackStart");
-const playerCardsEl = document.getElementById("playerCards");
-const dealerCardsEl = document.getElementById("dealerCards");
-const playerScoreEl = document.getElementById("playerScore");
-const dealerScoreEl = document.getElementById("dealerScore");
-const blackjackOtherBets = document.getElementById("blackjackOtherBets");
+const crashRoot = document.getElementById("crashGameRoot");
+const crashHashDisplay = document.getElementById("crashHashDisplay");
 const backButtons = document.querySelectorAll(".back-to-lobby");
 const languageSelect = document.getElementById("languageSelect");
 
@@ -155,7 +145,8 @@ const translations = {
     "home.filters.online": "Онлайн",
     "home.filters.offline": "Оффлайн",
     "games.roulette.title": "Онлайн Рулетка",
-    "games.blackjack.title": "Оффлайн Блэкджэк",
+    "games.crash.title": "Rocket Crash",
+    "games.crash.description": "Разгоняйтесь вместе с ракетой и забирайте ставку до внезапного краша.",
     "games.fruit.title": "Fruit Spin",
     "games.neon.title": "Neon Crash",
     "games.poker.title": "Turbo Poker",
@@ -170,7 +161,7 @@ const translations = {
     "chat.button": "Открыть чат",
     "ticker.messages.0": "🎉 Игрок LuckyFox выиграл 1 200₺ в Fruit Spin!",
     "ticker.messages.1": "🏅 User_234 сделал ставку 500₺ в Рулетке!",
-    "ticker.messages.2": "💎 DiamondKing выиграл 3 200₺ в блэкджэке!",
+    "ticker.messages.2": "💎 DiamondKing забрал 3 200₺ в Rocket Crash!",
     "ticker.messages.3": "🔥 NeoQueen сорвала джекпот 3 400₺ в Turbo Poker!",
     "ticker.messages.4": "⚡ Player_81 активировал бонус миссий!",
     "ticker.messages.5": "🎯 User_Mars выполнил миссию «Сделай 3 ставки»",
@@ -191,32 +182,49 @@ const translations = {
     "roulette.status.spinning": "Колесо вращается...",
     "roulette.result.zero": "Выпало зеро ({{color}}).",
     "roulette.result.number": "Выпало число {{number}} ({{color}}).",
-    "blackjack.back": "← В лобби",
-    "blackjack.title": "Блэкджэк",
-    "blackjack.subtitle": "Выбирайте ставку, тяните карты и попытайтесь обыграть дилера.",
-    "blackjack.stakeLabel": "Размер ставки (₺)",
-    "blackjack.stakePlaceholder": "Минимум 100₺",
-    "blackjack.start": "Начать раунд",
-    "blackjack.hit": "Взять карту",
-    "blackjack.stand": "Хватит",
-    "blackjack.restart": "Новая ставка",
-    "blackjack.dealer": "Дилер",
-    "blackjack.player": "Вы",
-    "blackjack.dealerScore": "Очки: <span id=\"dealerScore\">{{value}}</span>",
-    "blackjack.playerScore": "Очки: <span id=\"playerScore\">{{value}}</span>",
-    "blackjack.status.idle": "Сделайте ставку, чтобы начать.",
-    "blackjack.status.turn": "Ваш ход.",
-    "blackjack.outcome.blackjack": "Блэкджэк! Вы победили!",
-    "blackjack.outcome.bust": "Перебор! Вы проиграли.",
-    "blackjack.outcome.dealerBust": "Дилер перебрал. Победа!",
-    "blackjack.outcome.push": "Ничья с дилером.",
-    "blackjack.outcome.playerWin": "Вы победили!",
-    "blackjack.outcome.dealerWin": "Победил дилер.",
-    "blackjack.feedback.win": "Вы выиграли {{amount}}!",
-    "blackjack.feedback.push": "Ничья! Ставка возвращена.",
-    "blackjack.other.winTag": "Победа",
-    "blackjack.other.lossTag": "Поражение",
-    "blackjack.sidebarTitle": "Ставки других игроков",
+    "crash.back": "← В лобби",
+    "crash.title": "Rocket Crash",
+    "crash.subtitle": "Делайте ставку, задайте авто-кэшаут и успейте забрать выигрыш до краша ракеты.",
+    "crash.loading": "Загрузка реактивного интерфейса…",
+    "crash.roundLabel": "Раунд №{number}",
+    "crash.balanceLabel": "Баланс",
+    "crash.status.flight": "Полёт · {multiplier}×",
+    "crash.status.crashed": "Краш на {multiplier}×",
+    "crash.status.next": "Следующий раунд через {seconds} с",
+    "crash.status.countdown": "Старт через {seconds} с",
+    "crash.currentMultiplier": "Текущий множитель",
+    "crash.targetMultiplier": "Краш-поинт",
+    "crash.betAmount": "Ставка (₺)",
+    "crash.adjustDown": "Уменьшить ставку",
+    "crash.adjustUp": "Увеличить ставку",
+    "crash.autoCashout": "Авто-кэшаут (×)",
+    "crash.autoCashoutHint": "Автоматически фиксирует выигрыш при достижении выбранного множителя.",
+    "crash.autoCashoutLocked": "Авто-кэшаут недоступен во время полёта.",
+    "crash.btn.placeBet": "Поставить",
+    "crash.btn.cashOutAt": "Забрать {multiplier}×",
+    "crash.quickActions": "Быстрые действия",
+    "crash.repeatBet": "Повтор",
+    "crash.doubleBet": "Удвоить",
+    "crash.resetDemo": "Сбросить демо",
+    "crash.soundOn": "Звук включён",
+    "crash.soundOff": "Звук выключен",
+    "crash.historyTitle": "История раундов",
+    "crash.historyEmpty": "История пока пуста.",
+    "crash.historyRound": "Раунд №{number}",
+    "crash.historyWin": "Выигрыш",
+    "crash.historyLose": "Поражение",
+    "crash.leaderboardTitle": "Лучшие кэшауты",
+    "crash.toast.betAccepted": "Ставка {amount} принята.",
+    "crash.toast.betRejected": "Ставка не принята — дождитесь следующего старта.",
+    "crash.toast.cashout": "Вы забрали {amount} при {multiplier}×!",
+    "crash.toast.loss": "Краш на {multiplier}×. Ставка сгорела.",
+    "crash.errors.betTooLow": "Минимальная ставка {value}.",
+    "crash.noAccount": "Авторизуйтесь, чтобы сделать ставку.",
+    "crash.demoBalanceReset": "Баланс сброшен до {amount}.",
+    "crash.responsibleNote": "Demo-режим. Обучающие цели. Без денежных операций.",
+    "crash.fairnessDisclaimer": "Demo-режим. Обучающие цели. Без денежных операций.",
+    "crash.hashLabel": "Раунд №{round} — SHA256: {hash}",
+    "crash.hashTooltip": "Серверный сид: {server}\nКлиентский сид: {client}\nNonce: {nonce}",
     "messages.authBet": "Авторизуйтесь, чтобы сделать ставку.",
     "messages.minimumStake": "Минимальная ставка 100₺.",
     "messages.colorRequired": "Выберите один цвет для ставки.",
@@ -234,7 +242,6 @@ const translations = {
     "messages.accountExists": "Аккаунт с такими данными уже существует.",
     "messages.accountCreated": "Аккаунт создан! Теперь вы можете войти.",
     "messages.authGame": "Авторизуйтесь, чтобы открыть игру.",
-    "messages.authBlackjack": "Авторизуйтесь, чтобы сыграть.",
     "messages.rouletteTryAgain": "Не повезло в этот раз. Попробуйте снова.",
     "messages.authRequired": "Авторизуйтесь, чтобы продолжить.",
     "messages.winAmount": "Вы выиграли {{amount}}!",
@@ -325,7 +332,8 @@ const translations = {
     "home.filters.online": "Online",
     "home.filters.offline": "Offline",
     "games.roulette.title": "Online Roulette",
-    "games.blackjack.title": "Offline Blackjack",
+    "games.crash.title": "Rocket Crash",
+    "games.crash.description": "Ride the rocket and cash out before it explodes.",
     "games.fruit.title": "Fruit Spin",
     "games.neon.title": "Neon Crash",
     "games.poker.title": "Turbo Poker",
@@ -340,7 +348,7 @@ const translations = {
     "chat.button": "Open chat",
     "ticker.messages.0": "🎉 Player LuckyFox won 1 200₺ in Fruit Spin!",
     "ticker.messages.1": "🏅 User_234 placed a 500₺ bet on Roulette!",
-    "ticker.messages.2": "💎 DiamondKing won 3 200₺ in blackjack!",
+    "ticker.messages.2": "💎 DiamondKing cashed out 3 200₺ in Rocket Crash!",
     "ticker.messages.3": "🔥 NeoQueen hit the 3 400₺ jackpot in Turbo Poker!",
     "ticker.messages.4": "⚡ Player_81 activated the missions bonus!",
     "ticker.messages.5": "🎯 User_Mars completed the \"Place 3 bets\" mission",
@@ -361,32 +369,49 @@ const translations = {
     "roulette.status.spinning": "The wheel is spinning...",
     "roulette.result.zero": "Zero rolled ({{color}}).",
     "roulette.result.number": "Number {{number}} rolled ({{color}}).",
-    "blackjack.back": "← Back to lobby",
-    "blackjack.title": "Blackjack",
-    "blackjack.subtitle": "Choose your stake, draw cards, and try to beat the dealer.",
-    "blackjack.stakeLabel": "Stake amount (₺)",
-    "blackjack.stakePlaceholder": "Minimum 100₺",
-    "blackjack.start": "Start round",
-    "blackjack.hit": "Hit",
-    "blackjack.stand": "Stand",
-    "blackjack.restart": "New stake",
-    "blackjack.dealer": "Dealer",
-    "blackjack.player": "You",
-    "blackjack.dealerScore": "Score: <span id=\"dealerScore\">{{value}}</span>",
-    "blackjack.playerScore": "Score: <span id=\"playerScore\">{{value}}</span>",
-    "blackjack.status.idle": "Place a bet to start.",
-    "blackjack.status.turn": "Your move.",
-    "blackjack.outcome.blackjack": "Blackjack! You win!",
-    "blackjack.outcome.bust": "Bust! You lose.",
-    "blackjack.outcome.dealerBust": "Dealer busts. You win!",
-    "blackjack.outcome.push": "Push with the dealer.",
-    "blackjack.outcome.playerWin": "You win!",
-    "blackjack.outcome.dealerWin": "Dealer wins.",
-    "blackjack.feedback.win": "You won {{amount}}!",
-    "blackjack.feedback.push": "Push! Stake returned.",
-    "blackjack.other.winTag": "Win",
-    "blackjack.other.lossTag": "Loss",
-    "blackjack.sidebarTitle": "Other players' bets",
+    "crash.back": "← Back to lobby",
+    "crash.title": "Rocket Crash",
+    "crash.subtitle": "Set your bet and auto cashout, then grab the win before the rocket crashes.",
+    "crash.loading": "Booting rocket interface…",
+    "crash.roundLabel": "Round #{number}",
+    "crash.balanceLabel": "Balance",
+    "crash.status.flight": "In flight · {multiplier}×",
+    "crash.status.crashed": "Crash at {multiplier}×",
+    "crash.status.next": "Next round in {seconds}s",
+    "crash.status.countdown": "Launching in {seconds}s",
+    "crash.currentMultiplier": "Current multiplier",
+    "crash.targetMultiplier": "Crash point",
+    "crash.betAmount": "Bet amount (₺)",
+    "crash.adjustDown": "Decrease bet",
+    "crash.adjustUp": "Increase bet",
+    "crash.autoCashout": "Auto cashout (×)",
+    "crash.autoCashoutHint": "Automatically cash out once the multiplier reaches the chosen value.",
+    "crash.autoCashoutLocked": "Auto cashout is locked during flight.",
+    "crash.btn.placeBet": "Place bet",
+    "crash.btn.cashOutAt": "Cash Out {multiplier}×",
+    "crash.quickActions": "Quick actions",
+    "crash.repeatBet": "Repeat",
+    "crash.doubleBet": "Double",
+    "crash.resetDemo": "Reset demo",
+    "crash.soundOn": "Sound on",
+    "crash.soundOff": "Sound off",
+    "crash.historyTitle": "Recent rounds",
+    "crash.historyEmpty": "No rounds yet.",
+    "crash.historyRound": "Round #{number}",
+    "crash.historyWin": "Win",
+    "crash.historyLose": "Loss",
+    "crash.leaderboardTitle": "Latest cashouts",
+    "crash.toast.betAccepted": "Bet {amount} accepted.",
+    "crash.toast.betRejected": "Bet not accepted — wait for the next launch.",
+    "crash.toast.cashout": "You cashed out {amount} at {multiplier}×!",
+    "crash.toast.loss": "Crashed at {multiplier}×. Bet lost.",
+    "crash.errors.betTooLow": "Minimum bet is {value}.",
+    "crash.noAccount": "Sign in to place a bet.",
+    "crash.demoBalanceReset": "Demo balance restored to {amount}.",
+    "crash.responsibleNote": "Demo mode. Educational purposes. No monetary operations.",
+    "crash.fairnessDisclaimer": "Demo mode. Educational purposes. No monetary operations.",
+    "crash.hashLabel": "Round #{round} — SHA256: {hash}",
+    "crash.hashTooltip": "Server seed: {server}\nClient seed: {client}\nNonce: {nonce}",
     "messages.authBet": "Sign in to place a bet.",
     "messages.minimumStake": "Minimum stake is 100₺.",
     "messages.colorRequired": "Choose one colour for your bet.",
@@ -404,7 +429,6 @@ const translations = {
     "messages.accountExists": "An account with these details already exists.",
     "messages.accountCreated": "Account created! You can now sign in.",
     "messages.authGame": "Sign in to open the game.",
-    "messages.authBlackjack": "Sign in to play.",
     "messages.rouletteTryAgain": "No luck this time. Try again.",
     "messages.authRequired": "Sign in to continue.",
     "messages.winAmount": "You won {{amount}}!",
@@ -495,7 +519,8 @@ const translations = {
     "home.filters.online": "Çevrimiçi",
     "home.filters.offline": "Çevrimdışı",
     "games.roulette.title": "Çevrimiçi Rulet",
-    "games.blackjack.title": "Çevrimdışı Blackjack",
+    "games.crash.title": "Rocket Crash",
+    "games.crash.description": "Roketle yüksel, çakılmadan önce kazancı yakala.",
     "games.fruit.title": "Fruit Spin",
     "games.neon.title": "Neon Crash",
     "games.poker.title": "Turbo Poker",
@@ -510,7 +535,7 @@ const translations = {
     "chat.button": "Sohbeti aç",
     "ticker.messages.0": "🎉 LuckyFox oyuncusu Fruit Spin'de 1 200₺ kazandı!",
     "ticker.messages.1": "🏅 User_234 Rulet'te 500₺ bahis yaptı!",
-    "ticker.messages.2": "💎 DiamondKing blackjack'te 3 200₺ kazandı!",
+    "ticker.messages.2": "💎 DiamondKing Rocket Crash'te 3 200₺ cash-out yaptı!",
     "ticker.messages.3": "🔥 NeoQueen Turbo Poker'de 3 400₺ jackpotunu aldı!",
     "ticker.messages.4": "⚡ Player_81 görev bonusunu aktifleştirdi!",
     "ticker.messages.5": "🎯 User_Mars '3 bahis yap' görevini tamamladı",
@@ -531,32 +556,49 @@ const translations = {
     "roulette.status.spinning": "Çark dönüyor...",
     "roulette.result.zero": "Sıfır geldi ({{color}}).",
     "roulette.result.number": "{{number}} geldi ({{color}}).",
-    "blackjack.back": "← Lobiye dön",
-    "blackjack.title": "Blackjack",
-    "blackjack.subtitle": "Bahsinizi seçin, kart çekin ve krupiyeyi yenmeye çalışın.",
-    "blackjack.stakeLabel": "Bahis tutarı (₺)",
-    "blackjack.stakePlaceholder": "Minimum 100₺",
-    "blackjack.start": "Eli başlat",
-    "blackjack.hit": "Kart al",
-    "blackjack.stand": "Yeter",
-    "blackjack.restart": "Yeni bahis",
-    "blackjack.dealer": "Krupiye",
-    "blackjack.player": "Siz",
-    "blackjack.dealerScore": "Puan: <span id=\"dealerScore\">{{value}}</span>",
-    "blackjack.playerScore": "Puan: <span id=\"playerScore\">{{value}}</span>",
-    "blackjack.status.idle": "Başlamak için bahis yapın.",
-    "blackjack.status.turn": "Hamle sırası sizde.",
-    "blackjack.outcome.blackjack": "Blackjack! Kazandınız!",
-    "blackjack.outcome.bust": "Aştınız! Kaybettiniz.",
-    "blackjack.outcome.dealerBust": "Krupiye aştı. Kazandınız!",
-    "blackjack.outcome.push": "Krupiye ile berabere.",
-    "blackjack.outcome.playerWin": "Kazandınız!",
-    "blackjack.outcome.dealerWin": "Krupiye kazandı.",
-    "blackjack.feedback.win": "{{amount}} kazandınız!",
-    "blackjack.feedback.push": "Berabere! Bahsiniz iade edildi.",
-    "blackjack.other.winTag": "Galibiyet",
-    "blackjack.other.lossTag": "Kayıp",
-    "blackjack.sidebarTitle": "Diğer oyuncuların bahisleri",
+    "crash.back": "← Lobiye dön",
+    "crash.title": "Rocket Crash",
+    "crash.subtitle": "Bahsini ayarla, auto cash-out değerini seç ve roket çakılmadan kazancı al.",
+    "crash.loading": "Roket arayüzü yükleniyor…",
+    "crash.roundLabel": "Raunt #{number}",
+    "crash.balanceLabel": "Bakiye",
+    "crash.status.flight": "Uçuş · {multiplier}×",
+    "crash.status.crashed": "{multiplier}× değerinde çakıldı",
+    "crash.status.next": "Sonraki raunt {seconds} sn sonra",
+    "crash.status.countdown": "Kalkışa {seconds} sn",
+    "crash.currentMultiplier": "Anlık çarpan",
+    "crash.targetMultiplier": "Çarpışma noktası",
+    "crash.betAmount": "Bahis tutarı (₺)",
+    "crash.adjustDown": "Bahsi azalt",
+    "crash.adjustUp": "Bahsi artır",
+    "crash.autoCashout": "Auto cash-out (×)",
+    "crash.autoCashoutHint": "Çarpan seçilen değere ulaştığında kazancı otomatik olarak alır.",
+    "crash.autoCashoutLocked": "Uçuş sırasında auto cash-out kilitlidir.",
+    "crash.btn.placeBet": "Bahsi yap",
+    "crash.btn.cashOutAt": "{multiplier}× çarpanında al",
+    "crash.quickActions": "Hızlı işlemler",
+    "crash.repeatBet": "Tekrarla",
+    "crash.doubleBet": "İkiye katla",
+    "crash.resetDemo": "Demo bakiyeyi sıfırla",
+    "crash.soundOn": "Ses açık",
+    "crash.soundOff": "Ses kapalı",
+    "crash.historyTitle": "Son rauntlar",
+    "crash.historyEmpty": "Henüz kayıt yok.",
+    "crash.historyRound": "Raunt #{number}",
+    "crash.historyWin": "Kazanç",
+    "crash.historyLose": "Kayıp",
+    "crash.leaderboardTitle": "Son cash-out'lar",
+    "crash.toast.betAccepted": "{amount} tutarındaki bahis kabul edildi.",
+    "crash.toast.betRejected": "Bahis kabul edilmedi — bir sonraki kalkışı bekleyin.",
+    "crash.toast.cashout": "{multiplier}× çarpanında {amount} aldınız!",
+    "crash.toast.loss": "{multiplier}× değerinde çakıldı. Bahis kaybedildi.",
+    "crash.errors.betTooLow": "Minimum bahis {value}.",
+    "crash.noAccount": "Bahis yapmak için giriş yapın.",
+    "crash.demoBalanceReset": "Demo bakiye {amount} olarak sıfırlandı.",
+    "crash.responsibleNote": "Demo mod. Eğitim amaçlıdır. Para işlemi yoktur.",
+    "crash.fairnessDisclaimer": "Demo mod. Eğitim amaçlıdır. Para işlemi yoktur.",
+    "crash.hashLabel": "Raunt #{round} — SHA256: {hash}",
+    "crash.hashTooltip": "Sunucu tohum: {server}\nİstemci tohum: {client}\nNonce: {nonce}",
     "messages.authBet": "Bahis yapmak için giriş yapın.",
     "messages.minimumStake": "Minimum bahis 100₺.",
     "messages.colorRequired": "Bahsiniz için bir renk seçin.",
@@ -574,7 +616,6 @@ const translations = {
     "messages.accountExists": "Bu bilgilerle bir hesap zaten var.",
     "messages.accountCreated": "Hesap oluşturuldu! Artık giriş yapabilirsiniz.",
     "messages.authGame": "Oyunu açmak için giriş yapın.",
-    "messages.authBlackjack": "Oynamak için giriş yapın.",
     "messages.rouletteTryAgain": "Bu sefer olmadı. Tekrar deneyin.",
     "messages.authRequired": "Devam etmek için giriş yapın.",
     "messages.winAmount": "{{amount}} kazandınız!",
@@ -673,11 +714,11 @@ function getFavouriteGameLabel(value) {
   }
   if (typeof value === "string") {
     const trimmed = value.trim();
-    if (trimmed === "blackjack") return t("games.blackjack.title");
+    if (trimmed === "crash") return t("games.crash.title");
     if (trimmed === "roulette") return t("games.roulette.title");
     const lower = trimmed.toLowerCase();
-    if (lower.includes("blackjack") || lower.includes("блэкдж")) {
-      return t("games.blackjack.title");
+    if (lower.includes("crash") || lower.includes("ракета")) {
+      return t("games.crash.title");
     }
     if (lower.includes("roulette") || lower.includes("рулет")) {
       return t("games.roulette.title");
@@ -705,9 +746,9 @@ function updateGameStatuses() {
   if (rouletteStatus && !rouletteSpinning) {
     rouletteStatus.textContent = t("roulette.status.idle");
   }
-  if (blackjackStatus && !blackjackRoundActive) {
-    blackjackStatus.textContent = t("blackjack.status.idle");
-  }
+  document.dispatchEvent(
+    new CustomEvent("crash:language", { detail: { language: currentLanguage } })
+  );
 }
 
 function renderTickerMessages() {
@@ -718,6 +759,16 @@ function renderTickerMessages() {
     span.textContent = t(key);
     tickerTrack.appendChild(span);
   });
+}
+
+function resetRouletteUI() {
+  if (rouletteNumber) {
+    rouletteNumber.textContent = "-";
+  }
+  if (rouletteStatus) {
+    rouletteStatus.textContent = t("roulette.status.idle");
+  }
+  hideFormFeedback(rouletteFeedback);
 }
 
 function normalizeAccountData(account) {
@@ -767,30 +818,9 @@ const fakeNames = [
   "CharmingLuck",
 ];
 
-const blackjackDeckValues = [
-  "A",
-  "K",
-  "Q",
-  "J",
-  "10",
-  "9",
-  "8",
-  "7",
-  "6",
-  "5",
-  "4",
-  "3",
-  "2",
-];
-
 const otherBetsIntervals = new Map();
 let feedbackTimeout;
 let rouletteSpinning = false;
-let blackjackDeck = [];
-let blackjackPlayerCards = [];
-let blackjackDealerCards = [];
-let blackjackStake = 0;
-let blackjackRoundActive = false;
 
 const appState = {
   isAuthenticated: false,
@@ -893,6 +923,9 @@ function updateBalanceDisplays() {
   if (dashboardBalanceAmount) {
     dashboardBalanceAmount.textContent = formatCurrency(balanceValue);
   }
+  document.dispatchEvent(
+    new CustomEvent("crash:balance", { detail: { balance: balanceValue } })
+  );
 }
 
 function updateWelcome() {
@@ -979,14 +1012,6 @@ function setActiveNav(target) {
   });
 }
 
-function updateNavState() {
-  navLinks.forEach((link) => {
-    if (link.dataset.target === "auth") {
-      link.classList.toggle("hidden", appState.isAuthenticated);
-    }
-  });
-}
-
 function toggleAuthView(view) {
   if (!loginForm || !registerForm) return;
   const showLogin = view !== "register";
@@ -997,9 +1022,7 @@ function toggleAuthView(view) {
 }
 
 function showPage(target) {
-  const section = Array.from(pageSections).find(
-    (item) => item.dataset.page === target
-  );
+  const section = Array.from(pageSections).find((item) => item.dataset.page === target);
   if (!section) return;
 
   const requiresAuth = section.dataset.requiresAuth === "true";
@@ -1022,299 +1045,37 @@ function showPage(target) {
     setActiveNav(null);
   }
 
-  const isGamePage = target === "roulette" || target === "blackjack";
+  const isGamePage = target === "roulette" || target === "crash";
   if (isGamePage) {
     if (appState.activeGame && appState.activeGame !== target) {
-      stopOtherBets(appState.activeGame);
+      if (appState.activeGame === "roulette") {
+        stopRouletteFeed();
+      }
+      if (appState.activeGame === "crash") {
+        document.dispatchEvent(
+          new CustomEvent("crash:visibility", { detail: { visible: false } })
+        );
+      }
     }
     appState.activeGame = target;
-    startOtherBets(target);
+    if (target === "roulette") {
+      startRouletteFeed();
+    } else {
+      document.dispatchEvent(
+        new CustomEvent("crash:visibility", { detail: { visible: true } })
+      );
+    }
   } else if (appState.activeGame) {
-    stopOtherBets(appState.activeGame);
+    if (appState.activeGame === "roulette") {
+      stopRouletteFeed();
+    }
+    if (appState.activeGame === "crash") {
+      document.dispatchEvent(
+        new CustomEvent("crash:visibility", { detail: { visible: false } })
+      );
+    }
     appState.activeGame = null;
   }
-}
-
-function hideDropdown() {
-  if (!balanceDropdown || !balanceButton) return;
-  balanceDropdown.classList.add("hidden");
-  balanceButton.setAttribute("aria-expanded", "false");
-}
-
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function randomChoice(array) {
-  return array[Math.floor(Math.random() * array.length)];
-}
-
-function generateRouletteBets() {
-  const options = ["red", "black", "green"];
-  return Array.from({ length: randomInt(4, 6) }, () => {
-    const stake = Math.round(randomInt(2, 60) * 50);
-    const color = randomChoice(options);
-    return {
-      name: randomChoice(fakeNames),
-      stake,
-      color,
-    };
-  });
-}
-
-function generateBlackjackBets() {
-  return Array.from({ length: randomInt(3, 5) }, () => {
-    const stake = Math.round(randomInt(3, 70) * 50);
-    const outcome = Math.random() < 0.55 ? "win" : "loss";
-    const profitOptions = [1, 1.3, 1.5, 1.8, 2.2];
-    const change =
-      outcome === "win" ? Math.round(stake * randomChoice(profitOptions)) : -stake;
-    return {
-      name: randomChoice(fakeNames),
-      stake,
-      outcome,
-      change,
-    };
-  });
-}
-
-function renderOtherBets(gameKey) {
-  const list = gameKey === "roulette" ? rouletteOtherBets : blackjackOtherBets;
-  if (!list) return;
-  const items =
-    gameKey === "roulette" ? generateRouletteBets() : generateBlackjackBets();
-  list.innerHTML = "";
-  items.forEach((item) => {
-    const li = document.createElement("li");
-    const left = document.createElement("span");
-    left.textContent = item.name;
-    if (gameKey === "roulette") {
-      const right = document.createElement("span");
-      right.textContent = `${formatCurrency(item.stake)} • ${getColourLabel(item.color)}`;
-      li.append(left, right);
-    } else {
-      li.classList.add("bet-result", item.outcome);
-      left.classList.add("player");
-      const stake = document.createElement("span");
-      stake.classList.add("stake");
-      stake.textContent = formatCurrency(item.stake);
-      const result = document.createElement("span");
-      result.classList.add("result-tag");
-      const amount = item.change;
-      const labelKey =
-        item.outcome === "win" ? "blackjack.other.winTag" : "blackjack.other.lossTag";
-      result.textContent = `${formatCurrencySigned(amount)} • ${t(labelKey)}`;
-      li.append(left, stake, result);
-    }
-    list.appendChild(li);
-  });
-}
-
-function startOtherBets(gameKey) {
-  renderOtherBets(gameKey);
-  stopOtherBets(gameKey);
-  const interval = setInterval(() => renderOtherBets(gameKey), OTHER_BETS_INTERVAL);
-  otherBetsIntervals.set(gameKey, interval);
-}
-
-function stopOtherBets(gameKey) {
-  if (gameKey) {
-    const timer = otherBetsIntervals.get(gameKey);
-    if (timer) {
-      clearInterval(timer);
-      otherBetsIntervals.delete(gameKey);
-    }
-    return;
-  }
-  otherBetsIntervals.forEach((timer) => clearInterval(timer));
-  otherBetsIntervals.clear();
-}
-
-function initializeBlackjackState() {
-  blackjackDeck = [];
-  blackjackPlayerCards = [];
-  blackjackDealerCards = [];
-  blackjackStake = 0;
-  blackjackRoundActive = false;
-  blackjackForm?.reset();
-  if (blackjackHitButton) blackjackHitButton.disabled = true;
-  if (blackjackStandButton) blackjackStandButton.disabled = true;
-  if (blackjackRestartButton) blackjackRestartButton.classList.add("hidden");
-  if (blackjackStartButton) blackjackStartButton.disabled = false;
-  if (blackjackStatus) blackjackStatus.textContent = t("blackjack.status.idle");
-  if (playerCardsEl) playerCardsEl.innerHTML = "";
-  if (dealerCardsEl) dealerCardsEl.innerHTML = "";
-  if (playerScoreEl) playerScoreEl.textContent = "0";
-  if (dealerScoreEl) dealerScoreEl.textContent = "0";
-  hideFormFeedback(blackjackFeedback);
-}
-
-function resetRouletteUI() {
-  rouletteSpinning = false;
-  if (rouletteNumber) rouletteNumber.textContent = "-";
-  if (rouletteStatus) rouletteStatus.textContent = t("roulette.status.idle");
-  hideFormFeedback(rouletteFeedback);
-  rouletteForm?.reset();
-  if (rouletteStartButton) rouletteStartButton.disabled = false;
-}
-
-function createBlackjackDeck() {
-  const deck = [];
-  blackjackDeckValues.forEach((value) => {
-    for (let i = 0; i < 4; i += 1) {
-      deck.push(value);
-    }
-  });
-  return deck.sort(() => Math.random() - 0.5);
-}
-
-function drawCard() {
-  if (blackjackDeck.length === 0) {
-    blackjackDeck = createBlackjackDeck();
-  }
-  return blackjackDeck.pop();
-}
-
-function calculateScore(cards) {
-  let total = 0;
-  let aces = 0;
-  cards.forEach((card) => {
-    if (card === "A") {
-      total += 11;
-      aces += 1;
-    } else if (["K", "Q", "J"].includes(card)) {
-      total += 10;
-    } else {
-      total += Number(card);
-    }
-  });
-  while (total > 21 && aces > 0) {
-    total -= 10;
-    aces -= 1;
-  }
-  return total;
-}
-
-function renderBlackjackHands() {
-  if (dealerCardsEl) {
-    dealerCardsEl.innerHTML = blackjackDealerCards
-      .map((card) => `<span class="card">${card}</span>`)
-      .join("");
-  }
-  if (playerCardsEl) {
-    playerCardsEl.innerHTML = blackjackPlayerCards
-      .map((card) => `<span class="card">${card}</span>`)
-      .join("");
-  }
-  if (dealerScoreEl) {
-    dealerScoreEl.textContent = calculateScore(blackjackDealerCards).toString();
-  }
-  if (playerScoreEl) {
-    playerScoreEl.textContent = calculateScore(blackjackPlayerCards).toString();
-  }
-}
-
-function finishBlackjackRound(outcome, messageKey, experienceReward = 0, messageParams = {}) {
-  blackjackRoundActive = false;
-  if (blackjackHitButton) blackjackHitButton.disabled = true;
-  if (blackjackStandButton) blackjackStandButton.disabled = true;
-  if (blackjackRestartButton) blackjackRestartButton.classList.remove("hidden");
-  if (blackjackStartButton) blackjackStartButton.disabled = false;
-  const translatedMessage = t(messageKey, messageParams);
-  if (blackjackStatus) blackjackStatus.textContent = translatedMessage;
-
-  const account = appState.currentAccount;
-  if (!account) return;
-
-  if (outcome === "blackjack" || outcome === "win") {
-    const multiplier = outcome === "blackjack" ? 2.5 : 2;
-    const winnings = Math.round(blackjackStake * multiplier);
-    account.balance += winnings;
-    account.wins = Number(account.wins ?? 0) + 1;
-    account.favouriteGame = "blackjack";
-    account.streak = Number(account.streak ?? 0) + 1;
-    gainExperience(experienceReward);
-    showFormFeedback(
-      blackjackFeedback,
-      t("messages.winAmount", { amount: formatCurrency(winnings - blackjackStake) }),
-      true
-    );
-  } else if (outcome === "push") {
-    account.balance += blackjackStake;
-    showFormFeedback(blackjackFeedback, t("blackjack.feedback.push"), true);
-  } else {
-    account.streak = 0;
-    showFormFeedback(blackjackFeedback, translatedMessage, false);
-  }
-
-  blackjackStake = 0;
-  updateDashboardData();
-  persistCurrentUser();
-}
-
-function startBlackjackRound(stake) {
-  const account = appState.currentAccount;
-  if (!account) return;
-  account.balance -= stake;
-  blackjackStake = stake;
-  blackjackDeck = createBlackjackDeck();
-  blackjackPlayerCards = [drawCard(), drawCard()];
-  blackjackDealerCards = [drawCard(), drawCard()];
-  blackjackRoundActive = true;
-  hideFormFeedback(blackjackFeedback);
-  if (blackjackRestartButton) blackjackRestartButton.classList.add("hidden");
-  if (blackjackHitButton) blackjackHitButton.disabled = false;
-  if (blackjackStandButton) blackjackStandButton.disabled = false;
-  if (blackjackStartButton) blackjackStartButton.disabled = true;
-  if (blackjackStatus) blackjackStatus.textContent = t("blackjack.status.turn");
-  renderBlackjackHands();
-  updateBalanceDisplays();
-  persistCurrentUser();
-
-  const playerScore = calculateScore(blackjackPlayerCards);
-  if (playerScore === 21) {
-    finishBlackjackRound("blackjack", "blackjack.outcome.blackjack", 12);
-  }
-}
-
-function handleBlackjackHit() {
-  if (!blackjackRoundActive) return;
-  blackjackPlayerCards.push(drawCard());
-  renderBlackjackHands();
-  const playerScore = calculateScore(blackjackPlayerCards);
-  if (playerScore > 21) {
-    finishBlackjackRound("lose", "blackjack.outcome.bust");
-  }
-}
-
-function handleBlackjackStand() {
-  if (!blackjackRoundActive) return;
-  if (blackjackHitButton) blackjackHitButton.disabled = true;
-  if (blackjackStandButton) blackjackStandButton.disabled = true;
-
-  let dealerScore = calculateScore(blackjackDealerCards);
-  while (dealerScore < 17) {
-    blackjackDealerCards.push(drawCard());
-    dealerScore = calculateScore(blackjackDealerCards);
-    renderBlackjackHands();
-  }
-
-  const playerScore = calculateScore(blackjackPlayerCards);
-  dealerScore = calculateScore(blackjackDealerCards);
-
-  if (dealerScore > 21) {
-    finishBlackjackRound("win", "blackjack.outcome.dealerBust", 10);
-  } else if (dealerScore === playerScore) {
-    finishBlackjackRound("push", "blackjack.outcome.push");
-  } else if (playerScore > dealerScore) {
-    finishBlackjackRound("win", "blackjack.outcome.playerWin", 10);
-  } else {
-    finishBlackjackRound("lose", "blackjack.outcome.dealerWin");
-  }
-}
-
-function handleBlackjackRestart() {
-  initializeBlackjackState();
 }
 
 function getRouletteColor(number) {
@@ -1422,6 +1183,49 @@ function handleRouletteBet(event) {
   setTimeout(() => {
     handleRouletteResult({ stake, color });
   }, spinDuration);
+}
+
+function generateRouletteBets() {
+  const options = ["red", "black", "green"];
+  return Array.from({ length: randomInt(4, 6) }, () => {
+    const stake = Math.round(randomInt(2, 60) * 50);
+    const color = randomChoice(options);
+    return {
+      name: randomChoice(fakeNames),
+      stake,
+      color,
+    };
+  });
+}
+
+function renderRouletteOtherBets() {
+  if (!rouletteOtherBets) return;
+  const items = generateRouletteBets();
+  rouletteOtherBets.innerHTML = "";
+  items.forEach((item) => {
+    const li = document.createElement("li");
+    const left = document.createElement("span");
+    left.textContent = item.name;
+    const right = document.createElement("span");
+    right.textContent = `${formatCurrency(item.stake)} • ${getColourLabel(item.color)}`;
+    li.append(left, right);
+    rouletteOtherBets.appendChild(li);
+  });
+}
+
+function startRouletteFeed() {
+  stopRouletteFeed();
+  renderRouletteOtherBets();
+  const interval = setInterval(renderRouletteOtherBets, OTHER_BETS_INTERVAL);
+  otherBetsIntervals.set("roulette", interval);
+}
+
+function stopRouletteFeed() {
+  const interval = otherBetsIntervals.get("roulette");
+  if (interval) {
+    clearInterval(interval);
+    otherBetsIntervals.delete("roulette");
+  }
 }
 
 function handleDeposit() {
@@ -1572,7 +1376,10 @@ function handleLogout() {
   appState.currentAccount = null;
   appState.activeGame = null;
   clearCurrentUser();
-  stopOtherBets();
+  stopRouletteFeed();
+  document.dispatchEvent(
+    new CustomEvent("crash:visibility", { detail: { visible: false } })
+  );
   hideDropdown();
   setAuthenticatedState(false);
   updateDashboardData();
@@ -1594,8 +1401,8 @@ function openGame(gameKey) {
   }
   if (gameKey === "roulette") {
     showPage("roulette");
-  } else if (gameKey === "blackjack") {
-    showPage("blackjack");
+  } else if (gameKey === "crash") {
+    showPage("crash");
   }
 }
 
@@ -1715,31 +1522,6 @@ dashboardLink?.addEventListener("click", () => {
 });
 
 rouletteForm?.addEventListener("submit", handleRouletteBet);
-blackjackForm?.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (!appState.currentAccount) {
-    toggleAuthView("login");
-    showPage("auth");
-    showFormFeedback(blackjackFeedback, t("messages.authBlackjack"));
-    return;
-  }
-  if (blackjackRoundActive) return;
-  const formData = new FormData(blackjackForm);
-  const stake = Number(formData.get("stake"));
-  if (!Number.isFinite(stake) || stake < 100) {
-    showFormFeedback(blackjackFeedback, t("messages.minimumStake"));
-    return;
-  }
-  if (appState.currentAccount.balance < stake) {
-    showFormFeedback(blackjackFeedback, t("messages.balanceInsufficient"));
-    return;
-  }
-  startBlackjackRound(stake);
-});
-
-blackjackHitButton?.addEventListener("click", handleBlackjackHit);
-blackjackStandButton?.addEventListener("click", handleBlackjackStand);
-blackjackRestartButton?.addEventListener("click", handleBlackjackRestart);
 
 gameLaunchButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -1775,7 +1557,1070 @@ const storedLanguage = localStorage.getItem(LANGUAGE_KEY);
 setLanguage(storedLanguage || defaultLanguage);
 updateNavState();
 resetRouletteUI();
-initializeBlackjackState();
 showPage("home");
 
 document.querySelector(".switch-option.active")?.click();
+
+
+const CrashReact = window.React;
+const CrashReactDOM = window.ReactDOM;
+const crashMotion = window.framerMotion;
+const crashZustand = window.zustand;
+
+if (crashRoot && CrashReact && CrashReactDOM && crashMotion && crashZustand?.create) {
+  const { useState, useEffect, useMemo, useRef } = CrashReact;
+  const { motion, AnimatePresence } = crashMotion;
+  const createCrashStore = crashZustand.create;
+
+  const CRASH_RATE = 1.85;
+  const COUNTDOWN_START = 5;
+  const NEXT_ROUND_DELAY = 3;
+  const MIN_BET = 1;
+  const TRAJECTORY_STEP_MS = 48;
+  const SOUND_TICK_INTERVAL = 320;
+
+  const crashEngine = {
+    animationId: null,
+    countdownId: null,
+    nextTimerId: null,
+    startTime: 0,
+    crashPoint: 2,
+    lastTickTime: 0,
+    lastTrajectoryStamp: 0,
+    serverSeed: null,
+    nonce: 0,
+    audioCtx: null,
+  };
+
+  function randomHex(bytes = 16) {
+    const array = new Uint8Array(bytes);
+    if (window.crypto?.getRandomValues) {
+      window.crypto.getRandomValues(array);
+    } else {
+      for (let i = 0; i < array.length; i += 1) {
+        array[i] = Math.floor(Math.random() * 256);
+      }
+    }
+    return Array.from(array)
+      .map((value) => value.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  async function sha256(message) {
+    if (!window.crypto?.subtle) {
+      return randomHex(32);
+    }
+    const encoder = new TextEncoder();
+    const data = encoder.encode(message);
+    const hashBuffer = await window.crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(hashBuffer))
+      .map((value) => value.toString(16).padStart(2, "0"))
+      .join("");
+  }
+
+  function computeCrashPoint(hash) {
+    const slice = hash.slice(0, 13);
+    const integer = parseInt(slice, 16);
+    const max = Math.pow(16, slice.length);
+    const ratio = integer / max;
+    const crash = Math.max(1.01, Math.exp(ratio * 3.4));
+    return Math.round(crash * 100) / 100;
+  }
+
+  function formatMultiplierValue(value, language) {
+    const locale = supportedLanguages[language]?.locale ?? "ru-RU";
+    return new Intl.NumberFormat(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+
+  function ensureAudioContext() {
+    if (!window.AudioContext && !window.webkitAudioContext) return null;
+    if (!crashEngine.audioCtx) {
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      crashEngine.audioCtx = new Ctor();
+    }
+    return crashEngine.audioCtx;
+  }
+
+  function playCrashSound(type) {
+    const state = useCrashStore.getState();
+    if (!state.soundEnabled) return;
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    if (type === "tick") {
+      osc.frequency.value = 440;
+      gain.gain.setValueAtTime(0.02, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    } else if (type === "cashout") {
+      osc.frequency.value = 960;
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    } else {
+      osc.type = "sawtooth";
+      osc.frequency.value = 180;
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.002, now + 0.35);
+    }
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.4);
+  }
+
+  function updateFairnessFooter(meta) {
+    if (!crashHashDisplay) return;
+    const { language } = useCrashStore.getState();
+    crashHashDisplay.textContent = t("crash.hashLabel", {
+      round: meta.roundNumber,
+      hash: meta.hash,
+    });
+    crashHashDisplay.setAttribute(
+      "title",
+      t("crash.hashTooltip", {
+        server: meta.serverSeed,
+        client: meta.clientSeed,
+        nonce: meta.nonce,
+      })
+    );
+  }
+
+  const useCrashStore = createCrashStore((set, get) => ({
+    phase: "countdown",
+    countdown: COUNTDOWN_START,
+    nextTimer: 0,
+    multiplier: 1,
+    crashPoint: 2,
+    autoLocked: false,
+    betInput: 100,
+    autoCashoutInput: 1.5,
+    activeBet: null,
+    lastBetAmount: 100,
+    history: [],
+    leaderboard: [],
+    trajectory: [{ time: 0, value: 1 }],
+    balance: appState.currentAccount?.balance ?? 0,
+    language: currentLanguage,
+    roundNumber: 0,
+    roundHash: "",
+    serverSeed: "",
+    clientSeed: "",
+    nonce: 0,
+    soundEnabled: true,
+    visible: false,
+    toasts: [],
+    setState: (partial) => set(partial),
+    updateBalance: (balance) => set({ balance }),
+    setLanguage: (language) => set({ language }),
+    setVisibility: (visible) => set({ visible }),
+    setBetInput: (value) => set({ betInput: value }),
+    setAutoCashoutInput: (value) => set({ autoCashoutInput: value }),
+    markAutoLocked: (locked) => set({ autoLocked: locked }),
+    setActiveBet: (activeBet) => set({ activeBet }),
+    setLastBetAmount: (amount) => set({ lastBetAmount: amount }),
+    toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+    pushToast: (toast) => set((state) => ({ toasts: [...state.toasts, toast] })),
+    removeToast: (id) =>
+      set((state) => ({ toasts: state.toasts.filter((item) => item.id !== id) })),
+    pushHistory: (entry) =>
+      set((state) => ({ history: [entry, ...state.history].slice(0, 20) })),
+    updateLeaderboard: (entry) =>
+      set((state) => ({ leaderboard: [entry, ...state.leaderboard].slice(0, 8) })),
+    setTrajectory: (trajectory) => set({ trajectory }),
+  }));
+
+  function mutateAccountBalance(delta) {
+    const account = appState.currentAccount;
+    if (!account) return null;
+    account.balance = Math.max(0, Math.round((account.balance ?? 0) + delta));
+    updateDashboardData();
+    persistCurrentUser();
+    return account.balance;
+  }
+
+  function resolveLossIfNeeded() {
+    const state = useCrashStore.getState();
+    const bet = state.activeBet;
+    if (!bet || bet.cashedOut) return;
+    useCrashStore.setState({ activeBet: { ...bet, lost: true } });
+    useCrashStore.getState().pushHistory({
+      id: state.roundNumber,
+      multiplier: state.crashPoint,
+      cashoutMultiplier: null,
+      amount: bet.amount,
+      outcome: "loss",
+      profit: -bet.amount,
+    });
+    useCrashStore.getState().pushToast({
+      id: Date.now(),
+      type: "error",
+      message: t("crash.toast.loss", {
+        multiplier: formatMultiplierValue(state.crashPoint, state.language),
+      }),
+    });
+    if (appState.currentAccount) {
+      appState.currentAccount.favouriteGame = "crash";
+      appState.currentAccount.streak = 0;
+      persistCurrentUser();
+    }
+  }
+
+  function cashOut(manual = true) {
+    const state = useCrashStore.getState();
+    const bet = state.activeBet;
+    if (!bet || bet.cashedOut) return;
+    const multiplier = Math.max(1.01, state.multiplier);
+    const payout = Math.round(bet.amount * multiplier);
+    const net = payout - bet.amount;
+    mutateAccountBalance(payout);
+    const updatedBet = { ...bet, cashedOut: true, cashoutMultiplier: multiplier };
+    useCrashStore.setState({ activeBet: updatedBet });
+    useCrashStore.getState().pushHistory({
+      id: state.roundNumber,
+      multiplier: state.crashPoint,
+      cashoutMultiplier: multiplier,
+      amount: bet.amount,
+      outcome: "win",
+      profit: net,
+    });
+    useCrashStore.getState().updateLeaderboard({
+      player: appState.currentAccount?.nickname ?? "NeoPlayer",
+      multiplier,
+      amount: payout,
+    });
+    useCrashStore.getState().pushToast({
+      id: Date.now() + 1,
+      type: "success",
+      message: t("crash.toast.cashout", {
+        multiplier: formatMultiplierValue(multiplier, state.language),
+        amount: formatCurrency(net),
+      }),
+    });
+    playCrashSound("cashout");
+    const account = appState.currentAccount;
+    if (account) {
+      account.wins = Number(account.wins ?? 0) + 1;
+      account.favouriteGame = "crash";
+      account.streak = Number(account.streak ?? 0) + 1;
+      gainExperience(9);
+      persistCurrentUser();
+    }
+  }
+
+  function clearAnimation() {
+    if (crashEngine.animationId) {
+      cancelAnimationFrame(crashEngine.animationId);
+      crashEngine.animationId = null;
+    }
+  }
+
+  function clearTimers() {
+    if (crashEngine.countdownId) {
+      clearInterval(crashEngine.countdownId);
+      crashEngine.countdownId = null;
+    }
+    if (crashEngine.nextTimerId) {
+      clearInterval(crashEngine.nextTimerId);
+      crashEngine.nextTimerId = null;
+    }
+  }
+
+  function startNextPhase() {
+    clearTimers();
+    useCrashStore.setState({ phase: "next", nextTimer: NEXT_ROUND_DELAY });
+    crashEngine.nextTimerId = setInterval(() => {
+      const state = useCrashStore.getState();
+      if (state.nextTimer <= 1) {
+        clearInterval(crashEngine.nextTimerId);
+        crashEngine.nextTimerId = null;
+        prepareCrashRound();
+      } else {
+        useCrashStore.setState({ nextTimer: state.nextTimer - 1 });
+      }
+    }, 1000);
+  }
+
+  function animationStep(now) {
+    const elapsed = (now - crashEngine.startTime) / 1000;
+    const value = Math.exp(CRASH_RATE * elapsed);
+    const state = useCrashStore.getState();
+    if (value >= crashEngine.crashPoint) {
+      clearAnimation();
+      const finalTrajectory = [...state.trajectory, { time: elapsed, value: crashEngine.crashPoint }];
+      useCrashStore.setState({
+        phase: "crashed",
+        multiplier: crashEngine.crashPoint,
+        trajectory: finalTrajectory,
+      });
+      resolveLossIfNeeded();
+      playCrashSound("crash");
+      setTimeout(startNextPhase, 420);
+      return;
+    }
+
+    if (now - crashEngine.lastTickTime > SOUND_TICK_INTERVAL) {
+      crashEngine.lastTickTime = now;
+      playCrashSound("tick");
+    }
+
+    if (now - crashEngine.lastTrajectoryStamp > TRAJECTORY_STEP_MS) {
+      crashEngine.lastTrajectoryStamp = now;
+      useCrashStore.setState((current) => {
+        const trajectory = [...current.trajectory, { time: elapsed, value }];
+        if (trajectory.length > 360) trajectory.shift();
+        return { multiplier: value, trajectory };
+      });
+    } else {
+      useCrashStore.setState({ multiplier: value });
+    }
+
+    const bet = state.activeBet;
+    if (bet && !bet.cashedOut && bet.autoCashout && value >= bet.autoCashout) {
+      cashOut(false);
+    }
+
+    crashEngine.animationId = requestAnimationFrame(animationStep);
+  }
+
+  function startFlight() {
+    clearAnimation();
+    crashEngine.startTime = performance.now();
+    crashEngine.lastTickTime = crashEngine.startTime;
+    crashEngine.lastTrajectoryStamp = crashEngine.startTime;
+    useCrashStore.setState({
+      phase: "flying",
+      autoLocked: true,
+      multiplier: 1,
+      trajectory: [{ time: 0, value: 1 }],
+    });
+    crashEngine.animationId = requestAnimationFrame(animationStep);
+  }
+
+  async function prepareCrashRound() {
+    clearAnimation();
+    clearTimers();
+    crashEngine.nonce += 1;
+    if (!crashEngine.serverSeed) {
+      crashEngine.serverSeed = randomHex(32);
+    }
+    const state = useCrashStore.getState();
+    const clientSeed = appState.currentAccount?.id ?? "demo-client";
+    const hash = await sha256(
+      `${crashEngine.serverSeed}:${clientSeed}:${crashEngine.nonce}`
+    );
+    const crashPoint = computeCrashPoint(hash);
+    crashEngine.crashPoint = crashPoint;
+    useCrashStore.setState({
+      phase: "countdown",
+      countdown: COUNTDOWN_START,
+      multiplier: 1,
+      crashPoint,
+      autoLocked: false,
+      activeBet: null,
+      trajectory: [{ time: 0, value: 1 }],
+      roundNumber: state.roundNumber + 1,
+      roundHash: hash,
+      serverSeed: crashEngine.serverSeed,
+      clientSeed,
+      nonce: crashEngine.nonce,
+    });
+    updateFairnessFooter({
+      roundNumber: state.roundNumber + 1,
+      hash,
+      serverSeed: crashEngine.serverSeed,
+      clientSeed,
+      nonce: crashEngine.nonce,
+    });
+    let seconds = COUNTDOWN_START;
+    crashEngine.countdownId = setInterval(() => {
+      seconds -= 1;
+      if (seconds <= 0) {
+        clearInterval(crashEngine.countdownId);
+        crashEngine.countdownId = null;
+        startFlight();
+      } else {
+        useCrashStore.setState({ countdown: seconds });
+      }
+    }, 1000);
+  }
+
+  function placeBet() {
+    const state = useCrashStore.getState();
+    if (!appState.isAuthenticated || !appState.currentAccount) {
+      useCrashStore.getState().pushToast({
+        id: Date.now() + 3,
+        type: "info",
+        message: t("crash.noAccount"),
+      });
+      return;
+    }
+    if (state.phase !== "countdown") {
+      useCrashStore.getState().pushToast({
+        id: Date.now() + 4,
+        type: "warning",
+        message: t("crash.toast.betRejected"),
+      });
+      return;
+    }
+    if (state.activeBet && !state.activeBet.cashedOut) {
+      useCrashStore.getState().pushToast({
+        id: Date.now() + 5,
+        type: "warning",
+        message: t("crash.toast.betRejected"),
+      });
+      return;
+    }
+    const amount = Math.max(MIN_BET, Math.floor(Number(state.betInput) || 0));
+    if (!Number.isFinite(amount) || amount < MIN_BET) {
+      useCrashStore.getState().pushToast({
+        id: Date.now() + 6,
+        type: "warning",
+        message: t("crash.errors.betTooLow", { value: MIN_BET }),
+      });
+      return;
+    }
+    if ((appState.currentAccount?.balance ?? 0) < amount) {
+      useCrashStore.getState().pushToast({
+        id: Date.now() + 7,
+        type: "error",
+        message: t("messages.balanceInsufficient"),
+      });
+      return;
+    }
+    mutateAccountBalance(-amount);
+    const autoValue = Math.max(1.05, Number(state.autoCashoutInput) || 0);
+    useCrashStore.setState({
+      activeBet: { amount, autoCashout: autoValue, cashedOut: false },
+      lastBetAmount: amount,
+    });
+    useCrashStore.getState().pushToast({
+      id: Date.now() + 8,
+      type: "success",
+      message: t("crash.toast.betAccepted", { amount: formatCurrency(amount) }),
+    });
+    const ctx = ensureAudioContext();
+    ctx?.resume().catch(() => {});
+  }
+
+  function repeatBet() {
+    const state = useCrashStore.getState();
+    useCrashStore.setState({ betInput: state.lastBetAmount || MIN_BET });
+  }
+
+  function doubleBet() {
+    const state = useCrashStore.getState();
+    const balance = appState.currentAccount?.balance ?? state.balance;
+    const doubled = Math.min(balance, Math.max(MIN_BET, (state.lastBetAmount || MIN_BET) * 2));
+    useCrashStore.setState({ betInput: doubled, lastBetAmount: doubled });
+  }
+
+  function applyPreset(value) {
+    useCrashStore.setState({ betInput: value });
+  }
+
+  function setAutoCashout(value) {
+    const state = useCrashStore.getState();
+    if (state.autoLocked) {
+      useCrashStore.getState().pushToast({
+        id: Date.now() + 9,
+        type: "info",
+        message: t("crash.autoCashoutLocked"),
+      });
+      return;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 1.05) {
+      useCrashStore.setState({ autoCashoutInput: 1.5 });
+      return;
+    }
+    useCrashStore.setState({ autoCashoutInput: Math.round(parsed * 100) / 100 });
+  }
+
+  function resetDemoBalance() {
+    if (!appState.currentAccount) {
+      useCrashStore.getState().pushToast({
+        id: Date.now() + 10,
+        type: "info",
+        message: t("crash.noAccount"),
+      });
+      return;
+    }
+    appState.currentAccount.balance = 5000;
+    appState.currentAccount.streak = 0;
+    updateDashboardData();
+    persistCurrentUser();
+    useCrashStore.setState({ balance: 5000 });
+    useCrashStore.getState().pushToast({
+      id: Date.now() + 11,
+      type: "success",
+      message: t("crash.demoBalanceReset", { amount: formatCurrency(5000) }),
+    });
+  }
+
+  function toggleSound() {
+    useCrashStore.getState().toggleSound();
+    const ctx = ensureAudioContext();
+    ctx?.resume().catch(() => {});
+  }
+
+  function useCrashActions() {
+    return {
+      placeBet,
+      cashOut,
+      applyPreset,
+      repeatBet,
+      doubleBet,
+      setAutoCashout,
+      resetDemoBalance,
+      toggleSound,
+    };
+  }
+
+  function useCrashState(selector) {
+    return useCrashStore(selector);
+  }
+
+  function StatusBanner() {
+    const phase = useCrashState((state) => state.phase);
+  const countdown = useCrashState((state) => state.countdown);
+  const multiplier = useCrashState((state) => state.multiplier);
+  const crashPoint = useCrashState((state) => state.crashPoint);
+  const nextTimer = useCrashState((state) => state.nextTimer);
+  const language = useCrashState((state) => state.language);
+  const roundNumber = useCrashState((state) => state.roundNumber);
+  const balance = useCrashState((state) => state.balance);
+
+    const content = useMemo(() => {
+      if (phase === "flying") {
+        return t("crash.status.flight", {
+          multiplier: formatMultiplierValue(multiplier, language),
+        });
+      }
+      if (phase === "crashed") {
+        return t("crash.status.crashed", {
+          multiplier: formatMultiplierValue(crashPoint, language),
+        });
+      }
+      if (phase === "next") {
+        return t("crash.status.next", { seconds: nextTimer });
+      }
+      return t("crash.status.countdown", { seconds: countdown });
+    }, [phase, countdown, multiplier, crashPoint, nextTimer, language]);
+
+    return (
+      <div className="flex items-center justify-between gap-4 rounded-3xl bg-white/5 px-6 py-4 shadow-[0_20px_60px_rgba(0,212,255,0.12)]">
+        <div>
+          <p className="text-sm uppercase tracking-[0.4em] text-white/70">{t("crash.roundLabel", { number: roundNumber })}</p>
+          <p className="mt-2 text-2xl font-semibold text-white drop-shadow">{content}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/50">{t("crash.balanceLabel")}</p>
+          <p className="mt-1 text-xl font-semibold text-neon drop-shadow">
+            {formatCurrency(balance)}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  function Starfield() {
+    const canvasRef = useRef(null);
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return undefined;
+      const ctx = canvas.getContext("2d");
+      let animationFrame;
+      const stars = Array.from({ length: 140 }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        z: Math.random(),
+        speed: 0.0006 + Math.random() * 0.0012,
+      }));
+
+      function resize() {
+        canvas.width = canvas.clientWidth * window.devicePixelRatio;
+        canvas.height = canvas.clientHeight * window.devicePixelRatio;
+      }
+      resize();
+      window.addEventListener("resize", resize);
+
+      function render() {
+        const { width, height } = canvas;
+        ctx.clearRect(0, 0, width, height);
+        stars.forEach((star) => {
+          star.z -= star.speed;
+          if (star.z <= 0) {
+            star.x = Math.random();
+            star.y = Math.random();
+            star.z = 1;
+          }
+          const scale = 0.2 + (1 - star.z) * 0.8;
+          const x = (star.x - 0.5) * width * 0.9;
+          const y = (star.y - 0.5) * height * 0.9;
+          const alpha = 0.2 + (1 - star.z) * 0.8;
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(0, 212, 255, ${alpha})`;
+          ctx.arc(width / 2 + x, height / 2 + y, 1.2 * scale, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        animationFrame = requestAnimationFrame(render);
+      }
+      animationFrame = requestAnimationFrame(render);
+      return () => {
+        cancelAnimationFrame(animationFrame);
+        window.removeEventListener("resize", resize);
+      };
+    }, []);
+    return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />;
+  }
+
+  function Sparkline() {
+    const canvasRef = useRef(null);
+    const trajectory = useCrashState((state) => state.trajectory);
+    const crashPoint = useCrashState((state) => state.crashPoint);
+    const phase = useCrashState((state) => state.phase);
+
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const width = canvas.clientWidth * window.devicePixelRatio;
+      const height = canvas.clientHeight * window.devicePixelRatio;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, width, height);
+      if (!trajectory.length) return;
+      const maxMultiplier = Math.max(crashPoint, ...trajectory.map((p) => p.value));
+      const maxTime = trajectory[trajectory.length - 1]?.time || 1;
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(0, 212, 255, 0.8)";
+      ctx.beginPath();
+      trajectory.forEach((point, index) => {
+        const x = (point.time / Math.max(maxTime, 1)) * width;
+        const y = height - (point.value / Math.max(maxMultiplier, 1)) * height;
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+      if (phase === "crashed") {
+        const crashX = width;
+        const crashY = height - (crashPoint / Math.max(maxMultiplier, 1)) * height;
+        ctx.strokeStyle = "rgba(169, 112, 255, 0.7)";
+        ctx.beginPath();
+        ctx.moveTo(crashX, crashY);
+        ctx.lineTo(crashX, height);
+        ctx.stroke();
+      }
+    }, [trajectory, crashPoint, phase]);
+
+    return <canvas ref={canvasRef} className="h-40 w-full" />;
+  }
+
+  function RocketVisualizer() {
+    const multiplier = useCrashState((state) => state.multiplier);
+    const crashPoint = useCrashState((state) => state.crashPoint);
+    const phase = useCrashState((state) => state.phase);
+    const language = useCrashState((state) => state.language);
+    const progress = Math.min(1, (multiplier - 1) / Math.max(crashPoint - 1, 0.0001));
+    return (
+      <div className="relative overflow-hidden rounded-3xl bg-white/3 p-6 shadow-inner">
+        <Sparkline />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-midnight" />
+        <motion.div
+          className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center"
+          animate={{ y: phase === "flying" ? [-10, -40, -10] : 0 }}
+          transition={{ repeat: phase === "flying" ? Infinity : 0, duration: 2, ease: "easeInOut" }}
+          style={{ transform: `translate(-50%, ${-progress * 220}px)` }}
+        >
+          <div className="relative">
+            <div className="absolute -bottom-6 left-1/2 h-24 w-2 -translate-x-1/2 rounded-full bg-gradient-to-b from-neon/80 via-neon/20 to-transparent blur-sm" />
+            <motion.div
+              className="h-14 w-14 rounded-full bg-gradient-to-br from-neon to-orchid shadow-[0_0_30px_rgba(0,212,255,0.6)]"
+              animate={{ rotate: phase === "flying" ? [0, 2, -2, 0] : 0 }}
+              transition={{ repeat: phase === "flying" ? Infinity : 0, duration: 1.6, ease: "easeInOut" }}
+            >
+              <div className="relative h-full w-full">
+                <svg viewBox="0 0 120 120" className="h-full w-full">
+                  <defs>
+                    <linearGradient id="rocket-body" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#00D4FF" />
+                      <stop offset="100%" stopColor="#A970FF" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M60 12c18 18 24 42 24 66a24 24 0 0 1-48 0c0-24 6-48 24-66z"
+                    fill="url(#rocket-body)"
+                    opacity="0.9"
+                  />
+                  <circle cx="60" cy="54" r="14" fill="rgba(11,15,26,0.9)" />
+                  <circle cx="60" cy="54" r="7" fill="#7EE0FF" />
+                  <path d="M36 66c6 8 18 12 24 12s18-4 24-12c-6 16-18 26-24 26s-18-10-24-26z" fill="#fff" opacity="0.18" />
+                </svg>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+        <div className="relative mt-56 flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-white/60">{t("crash.currentMultiplier")}</p>
+          <p className="text-4xl font-semibold text-white drop-shadow">
+            {formatMultiplierValue(multiplier, language)}×
+          </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/60">{t("crash.targetMultiplier")}</p>
+          <p className="text-lg font-semibold text-orchid drop-shadow">
+            {formatMultiplierValue(crashPoint, language)}×
+          </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function BetControls() {
+    const actions = useCrashActions();
+    const betInput = useCrashState((state) => state.betInput);
+    const autoCashoutInput = useCrashState((state) => state.autoCashoutInput);
+    const autoLocked = useCrashState((state) => state.autoLocked);
+    const phase = useCrashState((state) => state.phase);
+    const activeBet = useCrashState((state) => state.activeBet);
+    const multiplier = useCrashState((state) => state.multiplier);
+    const language = useCrashState((state) => state.language);
+    const setBetInput = useCrashState((state) => state.setBetInput);
+
+    const cashoutLabel = phase === "flying" && activeBet && !activeBet.cashedOut
+      ? t("crash.btn.cashOutAt", { multiplier: formatMultiplierValue(multiplier, language) })
+      : t("crash.btn.placeBet");
+
+    const adjustBet = (delta) => {
+      const current = Number(betInput) || 0;
+      const next = Math.max(MIN_BET, Math.round(current + delta));
+      setBetInput(next);
+    };
+
+    return (
+      <div className="space-y-5 rounded-3xl bg-white/6 p-6 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,212,255,0.12)]">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-white/70">
+            {t("crash.betAmount")}
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => adjustBet(-1)}
+                aria-label={t("crash.adjustDown")}
+                title={t("crash.adjustDown")}
+                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-midnight/70 text-2xl font-semibold text-white/80 transition hover:border-neon hover:text-neon focus:outline-none focus:ring-2 focus:ring-neon/60"
+              >
+                −
+              </button>
+              <input
+                type="number"
+                min={MIN_BET}
+                step="1"
+                value={betInput}
+                onChange={(event) => {
+                  const raw = Number(event.target.value);
+                  if (!Number.isFinite(raw)) {
+                    setBetInput(MIN_BET);
+                    return;
+                  }
+                  setBetInput(Math.max(MIN_BET, Math.round(raw)));
+                }}
+                className="h-12 w-full flex-1 rounded-2xl border border-white/10 bg-midnight/70 px-4 text-lg text-white shadow-inner focus:border-neon focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => adjustBet(1)}
+                aria-label={t("crash.adjustUp")}
+                title={t("crash.adjustUp")}
+                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-midnight/70 text-2xl font-semibold text-white/80 transition hover:border-neon hover:text-neon focus:outline-none focus:ring-2 focus:ring-neon/60"
+              >
+                +
+              </button>
+            </div>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {[1, 5, 10, 25].map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => actions.applyPreset(value)}
+                className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:border-neon hover:text-neon"
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-white/70">
+            {t("crash.autoCashout")}
+            <input
+              type="number"
+              min="1.05"
+              step="0.05"
+              value={autoCashoutInput}
+              disabled={autoLocked}
+              onChange={(event) => actions.setAutoCashout(event.target.value)}
+              title={t("crash.autoCashoutHint")}
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-midnight/70 px-4 py-3 text-white shadow-inner focus:border-neon focus:outline-none disabled:cursor-not-allowed disabled:border-white/5 disabled:text-white/40"
+            />
+          </label>
+          {autoLocked && <p className="text-xs text-neon/70">{t("crash.autoCashoutLocked")}</p>}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (phase === "flying" && activeBet && !activeBet.cashedOut) {
+              actions.cashOut(true);
+            } else {
+              actions.placeBet();
+            }
+          }}
+          className="w-full rounded-2xl bg-gradient-to-r from-neon to-orchid px-4 py-3 text-lg font-semibold text-midnight shadow-neon transition hover:shadow-[0_0_35px_rgba(0,212,255,0.45)]"
+          disabled={phase !== "countdown" && !(phase === "flying" && activeBet && !activeBet.cashedOut)}
+        >
+          {cashoutLabel}
+        </button>
+      </div>
+    );
+  }
+
+  function QuickActions() {
+    const actions = useCrashActions();
+    const soundEnabled = useCrashState((state) => state.soundEnabled);
+    return (
+      <div className="grid grid-cols-1 gap-3 rounded-3xl bg-white/5 p-4">
+        <p className="text-xs uppercase tracking-[0.3em] text-white/60">{t("crash.quickActions")}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={actions.repeatBet}
+            className="rounded-2xl border border-white/15 px-4 py-3 text-sm font-medium text-white/80 transition hover:border-neon hover:text-neon"
+          >
+            {t("crash.repeatBet")}
+          </button>
+          <button
+            type="button"
+            onClick={actions.doubleBet}
+            className="rounded-2xl border border-white/15 px-4 py-3 text-sm font-medium text-white/80 transition hover:border-neon hover:text-neon"
+          >
+            {t("crash.doubleBet")}
+          </button>
+          <button
+            type="button"
+            onClick={actions.resetDemoBalance}
+            className="rounded-2xl border border-white/15 px-4 py-3 text-sm font-medium text-white/80 transition hover:border-neon hover:text-neon"
+          >
+            {t("crash.resetDemo")}
+          </button>
+          <button
+            type="button"
+            onClick={actions.toggleSound}
+            className="rounded-2xl border border-white/15 px-4 py-3 text-sm font-medium text-white/80 transition hover:border-neon hover:text-neon"
+          >
+            {soundEnabled ? t("crash.soundOn") : t("crash.soundOff")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function HistoryPanel() {
+    const history = useCrashState((state) => state.history);
+    const language = useCrashState((state) => state.language);
+    const [expanded, setExpanded] = useState(null);
+    const entries = history.slice(0, 15);
+    return (
+      <div className="rounded-3xl bg-white/5 p-4">
+        <p className="text-xs uppercase tracking-[0.3em] text-white/60">{t("crash.historyTitle")}</p>
+        <div className="mt-3 space-y-2">
+          {entries.length === 0 && <p className="text-sm text-white/60">{t("crash.historyEmpty")}</p>}
+          {entries.map((item) => {
+            const tone = item.multiplier < 1.5 ? "bg-red-500/20" : item.multiplier < 3 ? "bg-yellow-400/20" : "bg-green-500/20";
+            return (
+              <button
+                key={item.id + String(item.cashoutMultiplier)}
+                type="button"
+                onClick={() => setExpanded((prev) => (prev === item.id ? null : item.id))}
+                className={`w-full rounded-2xl border border-white/10 px-4 py-3 text-left transition hover:border-neon/40 ${tone}`}
+              >
+                <div className="flex items-center justify-between text-sm text-white/85">
+                  <span>{t("crash.historyRound", { number: item.id })}</span>
+                  <span>{formatMultiplierValue(item.cashoutMultiplier ?? item.multiplier, language)}×</span>
+                </div>
+                <div className="mt-1 flex items-center justify-between text-xs text-white/60">
+                  <span>{item.outcome === "win" ? t("crash.historyWin") : t("crash.historyLose")}</span>
+                  <span>{formatCurrency(item.profit)}</span>
+                </div>
+                <AnimatePresence>
+                  {expanded === item.id && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="mt-3"
+                    >
+                      <MiniSparkline multiplier={item.cashoutMultiplier ?? item.multiplier} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  function MiniSparkline({ multiplier }) {
+    const canvasRef = useRef(null);
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const width = canvas.clientWidth * window.devicePixelRatio;
+      const height = canvas.clientHeight * window.devicePixelRatio;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(0, 212, 255, 0.8)";
+      const samples = 40;
+      for (let i = 0; i <= samples; i += 1) {
+        const ratio = i / samples;
+        const value = Math.exp(CRASH_RATE * ratio) / Math.exp(CRASH_RATE);
+        const scaled = 1 + (multiplier - 1) * value;
+        const x = (i / samples) * width;
+        const y = height - (scaled / multiplier) * height;
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+    }, [multiplier]);
+    return <canvas ref={canvasRef} className="h-20 w-full" />;
+  }
+
+  function Leaderboard() {
+    const leaderboard = useCrashState((state) => state.leaderboard);
+    const language = useCrashState((state) => state.language);
+    if (!leaderboard.length) return null;
+    return (
+      <div className="rounded-3xl bg-white/5 p-4">
+        <p className="text-xs uppercase tracking-[0.3em] text-white/60">{t("crash.leaderboardTitle")}</p>
+        <div className="mt-3 space-y-2">
+          {leaderboard.map((entry, index) => (
+            <div key={index} className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-2 text-sm text-white/80">
+              <span>{entry.player}</span>
+              <span>{formatMultiplierValue(entry.multiplier, language)}× · {formatCurrency(entry.amount)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  function ToastStack() {
+    const toasts = useCrashState((state) => state.toasts);
+    useEffect(() => {
+      if (!toasts.length) return undefined;
+      const timers = toasts.map((toast) =>
+        setTimeout(() => useCrashStore.getState().removeToast(toast.id), 3200)
+      );
+      return () => timers.forEach((timer) => clearTimeout(timer));
+    }, [toasts]);
+    return (
+      <div className="pointer-events-none fixed bottom-6 right-6 z-50 flex w-72 flex-col gap-3">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, translateY: 20 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              exit={{ opacity: 0, translateY: 20 }}
+              className="rounded-2xl border border-white/15 bg-midnight/90 px-4 py-3 text-sm text-white shadow-[0_15px_45px_rgba(0,212,255,0.2)]"
+            >
+              {toast.message}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  function ResponsiblePlay() {
+    return (
+      <div className="rounded-3xl border border-white/15 bg-white/5 p-4 text-xs text-white/70">
+        <p>{t("crash.responsibleNote")}</p>
+      </div>
+    );
+  }
+
+  function CrashGameApp() {
+    return (
+      <div className="relative h-full w-full font-inter text-white">
+        <Starfield />
+        <div className="relative z-10 flex h-full flex-col xl:flex-row xl:gap-6">
+          <div className="flex flex-1 flex-col gap-5 p-6">
+            <StatusBanner />
+            <RocketVisualizer />
+          </div>
+          <div className="flex w-full flex-col gap-5 overflow-y-auto bg-white/6 p-6 xl:w-[380px] xl:rounded-l-3xl">
+            <BetControls />
+            <QuickActions />
+            <Leaderboard />
+            <HistoryPanel />
+            <ResponsiblePlay />
+          </div>
+        </div>
+        <ToastStack />
+      </div>
+    );
+  }
+
+  function initializeCrashGame() {
+    const root = CrashReactDOM.createRoot(crashRoot);
+    root.render(<CrashGameApp />);
+    prepareCrashRound();
+    document.addEventListener("crash:balance", (event) => {
+      if (!event?.detail) return;
+      useCrashStore.setState({ balance: event.detail.balance });
+    });
+    document.addEventListener("crash:language", (event) => {
+      if (!event?.detail) return;
+      useCrashStore.setState({ language: event.detail.language });
+      const state = useCrashStore.getState();
+      if (state.roundHash) {
+        updateFairnessFooter({
+          roundNumber: state.roundNumber,
+          hash: state.roundHash,
+          serverSeed: state.serverSeed,
+          clientSeed: state.clientSeed,
+          nonce: state.nonce,
+        });
+      }
+    });
+    document.addEventListener("crash:visibility", (event) => {
+      if (!event?.detail) return;
+      useCrashStore.setState({ visible: event.detail.visible });
+    });
+  }
+
+  initializeCrashGame();
+} else if (crashRoot) {
+  console.warn("Crash module dependencies missing.");
+}
