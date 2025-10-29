@@ -1,483 +1,1074 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeoCasino — концепт дизайна</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="neo_casino_styles.css" />
-</head>
-<body class="light-mode">
-  <div class="background-gradient"></div>
-  <div class="floating-gifts" aria-hidden="true">
-    <div class="gift"></div>
-    <div class="gift"></div>
-    <div class="gift"></div>
-  </div>
-
-  <header class="top-bar">
-    <div class="brand">NeoCasino</div>
-    <nav class="top-nav">
-      <button class="nav-link active" data-target="home">Главная</button>
-      <button class="nav-link" data-target="auth">Авторизация</button>
-    </nav>
-    <div class="header-controls">
-      <div class="user-controls hidden" id="userControls">
-        <button class="btn secondary dashboard-link" id="dashboardLink">Личный кабинет</button>
-        <div class="balance-menu">
-          <button class="balance-button" id="balanceButton" aria-haspopup="true" aria-expanded="false">
-            Баланс: <span id="balanceAmount">0₽</span>
-          </button>
-          <div class="balance-dropdown hidden" id="balanceDropdown">
-            <button class="dropdown-action" data-action="deposit">Пополнить</button>
-            <button class="dropdown-action" data-action="withdraw">Вывести</button>
-          </div>
-        </div>
-        <p class="balance-feedback hidden" id="balanceFeedback"></p>
-      </div>
-      <div class="toggles">
-        <button class="mode-toggle" id="modeToggle" aria-label="Переключить тему">
-          <span class="toggle-icon">🌙</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section id="authPage" class="page-block auth-page hidden" data-page="auth">
-      <div class="auth-card glassy">
-        <h1>Добро пожаловать в NeoCasino</h1>
-        <div class="auth-views">
-          <form class="auth-form" id="loginForm" autocomplete="off">
-            <div class="auth-form-header">
-              <h2>Вход в аккаунт</h2>
-              <p>Используйте зарегистрированную почту и пароль.</p>
-            </div>
-            <label class="input-group">
-              <span>Почта</span>
-              <input type="email" name="email" placeholder="Введите почту" required />
-            </label>
-            <label class="input-group">
-              <span>Пароль</span>
-              <input type="password" name="password" placeholder="Введите пароль" required />
-            </label>
-            <p class="form-feedback hidden" id="loginFeedback"></p>
-            <div class="auth-actions">
-              <button type="submit" class="btn primary">Войти</button>
-              <button type="button" class="btn secondary auth-switch" data-target="register">Регистрация</button>
-            </div>
-          </form>
-
-          <form class="auth-form hidden" id="registerForm" autocomplete="off">
-            <div class="auth-form-header">
-              <h2>Регистрация</h2>
-              <p>Создайте аккаунт, чтобы начать играть и управлять балансом.</p>
-            </div>
-            <label class="input-group">
-              <span>Никнейм</span>
-              <input type="text" name="nickname" placeholder="Ваш никнейм" required minlength="3" />
-            </label>
-            <label class="input-group">
-              <span>Почта</span>
-              <input type="email" name="email" placeholder="name@example.com" required />
-            </label>
-            <label class="input-group">
-              <span>Пароль</span>
-              <input type="password" name="password" placeholder="Создайте пароль" required minlength="6" />
-            </label>
-            <label class="input-group">
-              <span>Подтверждение пароля</span>
-              <input type="password" name="confirm" placeholder="Повторите пароль" required minlength="6" />
-            </label>
-            <label class="rules-check">
-              <input type="checkbox" name="rules" required />
-              <span>Я подтверждаю, что ознакомлен и принимаю правила казино</span>
-            </label>
-            <p class="form-feedback hidden" id="registerFeedback"></p>
-            <div class="auth-actions">
-              <button type="submit" class="btn primary">Создать аккаунт</button>
-              <button type="button" class="btn secondary auth-switch" data-target="login">Назад к входу</button>
-            </div>
-          </form>
-        </div>
-        <p class="demo-note">Это демо-сайт для развлекательных целей</p>
-      </div>
-    </section>
-
-    <section id="dashboard" class="page-block dashboard hidden" data-page="dashboard" data-requires-auth="true">
-      <div class="dashboard-header">
-        <div class="welcome">Добро пожаловать, <span class="accent">Гость</span></div>
-          <div class="balance-card glassy">
-            <div>
-              <p class="balance-label">Баланс</p>
-            <p class="balance-amount">0₽</p>
-            </div>
-            <div class="balance-actions">
-              <button class="btn primary">Пополнить</button>
-              <button class="btn outline">Вывести</button>
-            </div>
-        </div>
-      </div>
-
-      <div class="dashboard-body">
-        <aside class="side-menu glassy">
-          <button class="menu-item active" data-tab="profile">
-            <span class="icon">👤</span>
-            <span>Профиль</span>
-          </button>
-          <button class="menu-item" data-tab="security">
-            <span class="icon">🔐</span>
-            <span>Безопасность</span>
-          </button>
-          <button class="menu-item" data-tab="notifications">
-            <span class="icon">🔔</span>
-            <span>Уведомления</span>
-          </button>
-          <button class="menu-item" data-tab="vip">
-            <span class="icon">💎</span>
-            <span>Программа</span>
-          </button>
-          <button class="menu-item" data-tab="missions">
-            <span class="icon">🎯</span>
-            <span>Миссии</span>
-          </button>
-          <button class="menu-item logout" id="logoutButton">
-            <span class="icon">🚪</span>
-            <span>Выйти</span>
-          </button>
-        </aside>
-
-        <div class="tabs glassy">
-          <div class="tab-content active" id="profile">
-            <div class="profile-card">
-              <div class="avatar">
-                <span id="profileInitials">NP</span>
-              </div>
-              <div class="profile-info">
-                <h2 id="profileName">NeoPlayer</h2>
-                <p><span id="profileLevel">Уровень 1</span> • <span id="profileExperience">Опыт 0/100</span></p>
-                <div class="progress">
-                  <div class="progress-bar" id="profileProgress" style="width: 0%"></div>
-                </div>
-              </div>
-            </div>
-            <div class="profile-grid">
-              <article class="info-tile">
-                <h3>Статистика</h3>
-                <ul>
-                  <li>Побед: <span id="profileWins">0</span></li>
-                  <li>Любимая игра: <span id="profileFavourite">—</span></li>
-                  <li>VIP-уровень: <span id="profileVip">Новичок</span></li>
-                </ul>
-              </article>
-              <article class="info-tile">
-                <h3>Активность</h3>
-                <p>Последний визит: <span id="profileVisit">—</span></p>
-                <p>Серия побед: <span id="profileStreak">0</span></p>
-              </article>
-            </div>
-          </div>
-
-          <div class="tab-content" id="security">
-            <h2>Безопасность</h2>
-            <div class="security-grid">
-              <div class="security-item">
-                <div>
-                  <h3>Двухфакторная аутентификация</h3>
-                  <p>Добавьте дополнительный уровень защиты аккаунта.</p>
-                </div>
-                <button class="btn outline">Настроить</button>
-              </div>
-              <div class="security-item">
-                <div>
-                  <h3>Смена пароля</h3>
-                  <p>Рекомендуем обновлять пароль каждые 3 месяца.</p>
-                </div>
-                <button class="btn outline">Изменить</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="tab-content" id="notifications">
-            <h2>Настройки уведомлений</h2>
-            <div class="notification-list">
-              <label class="toggle">
-                <span>Промо-акции и бонусы</span>
-                <input type="checkbox" checked />
-                <span class="slider"></span>
-              </label>
-              <label class="toggle">
-                <span>Системные уведомления</span>
-                <input type="checkbox" checked />
-                <span class="slider"></span>
-              </label>
-              <label class="toggle">
-                <span>Игровые события</span>
-                <input type="checkbox" />
-                <span class="slider"></span>
-              </label>
-            </div>
-          </div>
-
-          <div class="tab-content" id="vip">
-            <h2>Программа лояльности</h2>
-            <div class="vip-tiers">
-              <div class="vip-tier">
-                <h3>Silver</h3>
-                <p>Кэшбек 5%, быстрые выплаты.</p>
-              </div>
-              <div class="vip-tier active">
-                <h3>Gold</h3>
-                <p>Персональный менеджер, эксклюзивные турниры.</p>
-              </div>
-              <div class="vip-tier">
-                <h3>Diamond</h3>
-                <p>VIP-ивенты, премиальные подарки, увеличенный кэшбек.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="tab-content" id="missions">
-            <h2>Дневные миссии</h2>
-            <div class="missions-list">
-              <article class="mission">
-                <h3>Сделай 3 ставки — получи бонус!</h3>
-                <p>Прогресс: 2/3</p>
-                <div class="progress">
-                  <div class="progress-bar" style="width: 66%"></div>
-                </div>
-              </article>
-              <article class="mission">
-                <h3>Выиграй в слотах 5 раз</h3>
-                <p>Прогресс: 1/5</p>
-                <div class="progress">
-                  <div class="progress-bar" style="width: 20%"></div>
-                </div>
-              </article>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="home" class="page-block home" data-page="home">
-      <div class="hero glassy">
-        <div class="hero-content">
-          <h1>NeoCasino — почувствуй азарт</h1>
-          <p>Геймифицированный портал с честными выигрышами, ежедневными миссиями и живой атмосферой.</p>
-          <div class="hero-actions">
-            <button class="btn primary">Играть сейчас</button>
-            <button class="btn outline">Узнать больше</button>
-          </div>
-        </div>
-        <div class="hero-visual">
-          <div class="chip"></div>
-          <div class="dice"></div>
-          <div class="coin"></div>
-        </div>
-      </div>
-
-      <div class="game-filters glassy">
-        <span>Категории игр</span>
-        <div class="switch" role="radiogroup">
-          <button class="switch-option active" data-category="online">Онлайн</button>
-          <button class="switch-option" data-category="offline">Оффлайн</button>
-        </div>
-      </div>
-
-      <div class="game-grid">
-        <article class="game-card online" data-game="roulette">
-          <figure class="game-thumb">
-            <img src="https://i.imgur.com/jXl2rG7.jpeg" alt="Колесо рулетки" loading="lazy" />
-          </figure>
-          <h3>Онлайн Рулетка</h3>
-          <p class="rating">★ 4.8</p>
-          <button class="btn secondary game-launch">Играть</button>
-        </article>
-        <article class="game-card offline" data-game="blackjack">
-          <figure class="game-thumb">
-            <img src="https://i.imgur.com/txlCdxO.png" alt="Логотип блэкджека" loading="lazy" />
-          </figure>
-          <h3>Оффлайн Блэкджэк</h3>
-          <p class="rating">★ 4.7</p>
-          <button class="btn secondary game-launch">Играть</button>
-        </article>
-        <article class="game-card online">
-          <figure class="game-thumb">
-            <img
-              src="https://images.unsplash.com/photo-1619474446860-0e53e13d9a9f?auto=format&fit=crop&w=400&q=80"
-              alt="Яркие барабаны игрового автомата"
-              loading="lazy"
-            />
-          </figure>
-          <h3>Fruit Spin</h3>
-          <p class="rating">★ 4.5</p>
-          <button class="btn secondary" disabled>Скоро</button>
-        </article>
-        <article class="game-card offline">
-          <figure class="game-thumb">
-            <img
-              src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=400&q=80"
-              alt="Неоновая вспышка в темном казино"
-              loading="lazy"
-            />
-          </figure>
-          <h3>Neon Crash</h3>
-          <p class="rating">★ 4.3</p>
-          <button class="btn secondary" disabled>Скоро</button>
-        </article>
-        <article class="game-card online">
-          <figure class="game-thumb">
-            <img
-              src="https://images.unsplash.com/photo-1533237264985-ee7a4c0873c1?auto=format&fit=crop&w=400&q=80"
-              alt="Игроки за покерным столом"
-              loading="lazy"
-            />
-          </figure>
-          <h3>Turbo Poker</h3>
-          <p class="rating">★ 4.6</p>
-          <button class="btn secondary" disabled>Скоро</button>
-        </article>
-        <article class="game-card offline">
-          <figure class="game-thumb">
-            <img
-              src="https://images.unsplash.com/photo-1526682847805-7214b00af12c?auto=format&fit=crop&w=400&q=80"
-              alt="Сияющее колесо фортуны"
-              loading="lazy"
-            />
-          </figure>
-          <h3>Lucky Wheel</h3>
-          <p class="rating">★ 4.2</p>
-          <button class="btn secondary" disabled>Скоро</button>
-        </article>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer glassy">
-    <div class="vip-panel">
-      <h3>Программа лояльности</h3>
-      <p>Собирайте опыт, открывайте уровни Silver, Gold и Diamond, получайте эксклюзивные бонусы.</p>
-    </div>
-    <div class="missions-panel">
-      <h3>Дневные миссии</h3>
-      <p>Ежедневно выполняйте задания и забирайте дополнительные награды.</p>
-    </div>
-  </footer>
-
-  <div class="chat-widget" aria-label="Чат-поддержка">
-    <button class="chat-button">💬</button>
-  </div>
-
-  <div class="live-ticker glassy" aria-live="polite">
-    <div class="ticker-track" id="tickerTrack">
-      <span>🎉 Игрок LuckyFox выиграл 1200₽ в Fruit Spin!</span>
-      <span>🔥 User_234 сделал ставку 500₽ в Рулетке!</span>
-      <span>🏆 NeoQueen сорвала джекпот 3 400₽ в Turbo Poker!</span>
-    </div>
-  </div>
-
-  <section id="rouletteGame" class="page-block game-page hidden" data-page="roulette" data-requires-auth="true">
-    <div class="game-layout glassy">
-      <div class="game-header">
-        <div class="game-title">
-          <button class="btn outline back-to-lobby" data-target="home">← В лобби</button>
-          <h2>Онлайн Рулетка</h2>
-        </div>
-        <p>Сделайте ставку на один цвет и запустите колесо удачи.</p>
-      </div>
-      <div class="game-body">
-        <div class="game-visual">
-          <img src="https://i.imgur.com/jXl2rG7.jpeg" alt="Колесо рулетки" />
-        </div>
-        <div class="game-controls">
-          <form id="rouletteForm" class="bet-form">
-            <label class="input-group">
-              <span>Размер ставки (₽)</span>
-              <input type="number" name="stake" min="100" step="50" placeholder="Минимум 100" required />
-            </label>
-            <fieldset class="bet-choices">
-              <legend>Выбор цвета</legend>
-              <label>
-                <input type="radio" name="color" value="red" required />
-                <span class="bet-chip red">Красное</span>
-              </label>
-              <label>
-                <input type="radio" name="color" value="black" />
-                <span class="bet-chip black">Чёрное</span>
-              </label>
-              <label>
-                <input type="radio" name="color" value="green" />
-                <span class="bet-chip green">Зелёное</span>
-              </label>
-            </fieldset>
-            <button type="submit" class="btn primary" id="rouletteStart">Сделать ставку</button>
-          </form>
-          <div class="game-status">
-            <div class="roulette-number" id="rouletteNumber">-</div>
-            <p class="roulette-status" id="rouletteStatus">Ставка ещё не сделана.</p>
-          </div>
-          <p class="form-feedback hidden" id="rouletteFeedback"></p>
-        </div>
-        <aside class="other-bets">
-          <h3>Ставки других игроков</h3>
-          <ul id="rouletteOtherBets" class="other-bets-list"></ul>
-        </aside>
-      </div>
-    </div>
-  </section>
-
-  <section id="blackjackGame" class="page-block game-page hidden" data-page="blackjack" data-requires-auth="true">
-    <div class="game-layout glassy">
-      <div class="game-header">
-        <div class="game-title">
-          <button class="btn outline back-to-lobby" data-target="home">← В лобби</button>
-          <h2>Блэкджэк</h2>
-        </div>
-        <p>Выбирайте ставку, тяните карты и попытайтесь обыграть дилера.</p>
-      </div>
-      <div class="game-body">
-        <div class="game-visual">
-          <img src="https://i.imgur.com/txlCdxO.png" alt="Стол для блэкджека" />
-        </div>
-        <div class="game-controls blackjack">
-          <form id="blackjackForm" class="bet-form">
-            <label class="input-group">
-              <span>Размер ставки (₽)</span>
-              <input type="number" name="stake" min="100" step="50" placeholder="Минимум 100" required />
-            </label>
-            <div class="blackjack-actions">
-              <button type="submit" class="btn primary" id="blackjackStart">Начать раунд</button>
-              <button type="button" class="btn secondary" id="blackjackHit">Взять карту</button>
-              <button type="button" class="btn outline" id="blackjackStand">Хватит</button>
-              <button type="button" class="btn secondary hidden" id="blackjackRestart">Новая ставка</button>
-            </div>
-          </form>
-          <div class="blackjack-table">
-            <div class="hand">
-              <h3>Дилер</h3>
-              <div class="cards" id="dealerCards"></div>
-              <p class="score">Очки: <span id="dealerScore">0</span></p>
-            </div>
-            <div class="hand">
-              <h3>Вы</h3>
-              <div class="cards" id="playerCards"></div>
-              <p class="score">Очки: <span id="playerScore">0</span></p>
-            </div>
-          </div>
-          <p class="blackjack-status" id="blackjackStatus">Сделайте ставку, чтобы начать.</p>
-          <p class="form-feedback hidden" id="blackjackFeedback"></p>
-        </div>
-        <aside class="other-bets">
-          <h3>Ставки других игроков</h3>
-          <ul id="blackjackOtherBets" class="other-bets-list"></ul>
-        </aside>
-      </div>
-    </div>
-  </section>
-
-  <script src="neo_casino_interactions.js"></script>
-</body>
-</html>
+ <!DOCTYPE html>
+ <html lang="ru">
+ <head>
+   <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <title>NeoCasino — концепт дизайна</title>
+   <link rel="preconnect" href="https://fonts.googleapis.com" />
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap" rel="stylesheet" />
++  <link
++    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap"
++    rel="stylesheet"
++  />
++  <script src="https://cdn.tailwindcss.com"></script>
++  <script>
++    tailwind.config = {
++      darkMode: ['class', '.dark-mode'],
++      theme: {
++        extend: {
++          colors: {
++            midnight: '#0B0F1A',
++            neon: '#00D4FF',
++            orchid: '#A970FF',
++            glass: 'rgba(9, 14, 31, 0.75)',
++          },
++          boxShadow: {
++            aurora: '0 25px 50px -12px rgba(0, 212, 255, 0.35)',
++            neon: '0 0 35px rgba(0, 212, 255, 0.45)',
++          },
++          fontFamily: {
++            inter: ['Inter', 'system-ui', 'sans-serif'],
++            poppins: ['Poppins', 'system-ui', 'sans-serif'],
++          },
++        },
++      },
++    };
++  </script>
+   <link rel="stylesheet" href="neo_casino_styles.css" />
++  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
++  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
++  <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.umd.min.js"></script>
++  <script src="https://cdn.jsdelivr.net/npm/zustand/umd/zustand.min.js"></script>
++  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+ </head>
+-<body class="light-mode">
++<body class="dark-mode">
+   <div class="background-gradient"></div>
+   <div class="floating-gifts" aria-hidden="true">
+     <div class="gift"></div>
+     <div class="gift"></div>
+     <div class="gift"></div>
+   </div>
+ 
+   <header class="top-bar">
+-    <div class="brand">NeoCasino</div>
++    <div class="brand" data-i18n="header.brand">NeoCasino</div>
+     <nav class="top-nav">
+-      <button class="nav-link active" data-target="home">Главная</button>
+-      <button class="nav-link" data-target="auth">Авторизация</button>
++      <button class="nav-link active" data-target="home" data-i18n="nav.home">Главная</button>
++      <button class="nav-link" data-target="auth" data-i18n="nav.auth">Авторизация</button>
+     </nav>
+     <div class="header-controls">
+       <div class="user-controls hidden" id="userControls">
+-        <button class="btn secondary dashboard-link" id="dashboardLink">Личный кабинет</button>
++        <button class="btn secondary dashboard-link" id="dashboardLink" data-i18n="header.dashboard">Личный кабинет</button>
+         <div class="balance-menu">
+           <button class="balance-button" id="balanceButton" aria-haspopup="true" aria-expanded="false">
+-            Баланс: <span id="balanceAmount">0₽</span>
++            <span data-i18n="header.balance">Баланс:</span> <span id="balanceAmount">0₺</span>
+           </button>
+           <div class="balance-dropdown hidden" id="balanceDropdown">
+-            <button class="dropdown-action" data-action="deposit">Пополнить</button>
+-            <button class="dropdown-action" data-action="withdraw">Вывести</button>
++            <button class="dropdown-action" data-action="deposit" data-i18n="dropdown.deposit">Пополнить</button>
++            <button class="dropdown-action" data-action="withdraw" data-i18n="dropdown.withdraw">Вывести</button>
+           </div>
+         </div>
+         <p class="balance-feedback hidden" id="balanceFeedback"></p>
+       </div>
+-      <div class="toggles">
+-        <button class="mode-toggle" id="modeToggle" aria-label="Переключить тему">
+-          <span class="toggle-icon">🌙</span>
+-        </button>
+-      </div>
+     </div>
+   </header>
+ 
+   <main>
+     <section id="authPage" class="page-block auth-page hidden" data-page="auth">
+       <div class="auth-card glassy">
+-        <h1>Добро пожаловать в NeoCasino</h1>
++        <h1 data-i18n="auth.heading">Добро пожаловать в NeoCasino</h1>
+         <div class="auth-views">
+           <form class="auth-form" id="loginForm" autocomplete="off">
+             <div class="auth-form-header">
+-              <h2>Вход в аккаунт</h2>
+-              <p>Используйте зарегистрированную почту и пароль.</p>
++              <h2 data-i18n="auth.login.title">Вход в аккаунт</h2>
++              <p data-i18n="auth.login.subtitle">Используйте зарегистрированную почту и пароль.</p>
+             </div>
+             <label class="input-group">
+-              <span>Почта</span>
+-              <input type="email" name="email" placeholder="Введите почту" required />
++              <span data-i18n="auth.email">Почта</span>
++              <input type="email" name="email" placeholder="Введите почту" data-i18n-placeholder="auth.emailPlaceholder" required />
+             </label>
+             <label class="input-group">
+-              <span>Пароль</span>
+-              <input type="password" name="password" placeholder="Введите пароль" required />
++              <span data-i18n="auth.password">Пароль</span>
++              <input type="password" name="password" placeholder="Введите пароль" data-i18n-placeholder="auth.passwordPlaceholder" required />
+             </label>
+             <p class="form-feedback hidden" id="loginFeedback"></p>
+             <div class="auth-actions">
+-              <button type="submit" class="btn primary">Войти</button>
+-              <button type="button" class="btn secondary auth-switch" data-target="register">Регистрация</button>
++              <button type="submit" class="btn primary" data-i18n="auth.login.submit">Войти</button>
++              <button type="button" class="btn secondary auth-switch" data-target="register" data-i18n="auth.login.switch">Регистрация</button>
+             </div>
+           </form>
+ 
+           <form class="auth-form hidden" id="registerForm" autocomplete="off">
+             <div class="auth-form-header">
+-              <h2>Регистрация</h2>
+-              <p>Создайте аккаунт, чтобы начать играть и управлять балансом.</p>
++              <h2 data-i18n="auth.register.title">Регистрация</h2>
++              <p data-i18n="auth.register.subtitle">Создайте аккаунт, чтобы начать играть и управлять балансом.</p>
+             </div>
+             <label class="input-group">
+-              <span>Никнейм</span>
+-              <input type="text" name="nickname" placeholder="Ваш никнейм" required minlength="3" />
++              <span data-i18n="auth.nickname">Никнейм</span>
++              <input type="text" name="nickname" placeholder="Ваш никнейм" data-i18n-placeholder="auth.nicknamePlaceholder" required minlength="3" />
+             </label>
+             <label class="input-group">
+-              <span>Почта</span>
+-              <input type="email" name="email" placeholder="name@example.com" required />
++              <span data-i18n="auth.email">Почта</span>
++              <input type="email" name="email" placeholder="name@example.com" data-i18n-placeholder="auth.emailExample" required />
+             </label>
+             <label class="input-group">
+-              <span>Пароль</span>
+-              <input type="password" name="password" placeholder="Создайте пароль" required minlength="6" />
++              <span data-i18n="auth.password">Пароль</span>
++              <input type="password" name="password" placeholder="Создайте пароль" data-i18n-placeholder="auth.passwordCreate" required minlength="6" />
+             </label>
+             <label class="input-group">
+-              <span>Подтверждение пароля</span>
+-              <input type="password" name="confirm" placeholder="Повторите пароль" required minlength="6" />
++              <span data-i18n="auth.confirm">Подтверждение пароля</span>
++              <input type="password" name="confirm" placeholder="Повторите пароль" data-i18n-placeholder="auth.confirmPlaceholder" required minlength="6" />
+             </label>
+             <label class="rules-check">
+               <input type="checkbox" name="rules" required />
+-              <span>Я подтверждаю, что ознакомлен и принимаю правила казино</span>
++              <span data-i18n="auth.rules">Я подтверждаю, что ознакомлен и принимаю правила казино</span>
+             </label>
+             <p class="form-feedback hidden" id="registerFeedback"></p>
+             <div class="auth-actions">
+-              <button type="submit" class="btn primary">Создать аккаунт</button>
+-              <button type="button" class="btn secondary auth-switch" data-target="login">Назад к входу</button>
++              <button type="submit" class="btn primary" data-i18n="auth.register.submit">Создать аккаунт</button>
++              <button type="button" class="btn secondary auth-switch" data-target="login" data-i18n="auth.register.switch">Назад к входу</button>
+             </div>
+           </form>
+         </div>
+-        <p class="demo-note">Это демо-сайт для развлекательных целей</p>
++        <p class="demo-note" data-i18n="auth.demo">Это демо-сайт для развлекательных целей</p>
+       </div>
+     </section>
+ 
+     <section id="dashboard" class="page-block dashboard hidden" data-page="dashboard" data-requires-auth="true">
+       <div class="dashboard-header">
+-        <div class="welcome">Добро пожаловать, <span class="accent">Гость</span></div>
+-          <div class="balance-card glassy">
+-            <div>
+-              <p class="balance-label">Баланс</p>
+-            <p class="balance-amount">0₽</p>
+-            </div>
+-            <div class="balance-actions">
+-              <button class="btn primary">Пополнить</button>
+-              <button class="btn outline">Вывести</button>
+-            </div>
++        <div class="welcome" data-i18n-html="dashboard.welcome">Добро пожаловать, <span class="accent">Гость</span></div>
++        <div class="balance-card glassy">
++          <div>
++            <p class="balance-label" data-i18n="dashboard.balanceLabel">Баланс</p>
++            <p class="balance-amount">0₺</p>
++          </div>
++          <div class="balance-actions">
++            <button class="btn primary" data-i18n="dashboard.deposit">Пополнить</button>
++            <button class="btn outline" data-i18n="dashboard.withdraw">Вывести</button>
++          </div>
+         </div>
+       </div>
+ 
+       <div class="dashboard-body">
+         <aside class="side-menu glassy">
+           <button class="menu-item active" data-tab="profile">
+             <span class="icon">👤</span>
+-            <span>Профиль</span>
++            <span data-i18n="menu.profile">Профиль</span>
+           </button>
+           <button class="menu-item" data-tab="security">
+             <span class="icon">🔐</span>
+-            <span>Безопасность</span>
++            <span data-i18n="menu.security">Безопасность</span>
+           </button>
+           <button class="menu-item" data-tab="notifications">
+             <span class="icon">🔔</span>
+-            <span>Уведомления</span>
++            <span data-i18n="menu.notifications">Уведомления</span>
+           </button>
+           <button class="menu-item" data-tab="vip">
+             <span class="icon">💎</span>
+-            <span>Программа</span>
++            <span data-i18n="menu.vip">Программа</span>
+           </button>
+           <button class="menu-item" data-tab="missions">
+             <span class="icon">🎯</span>
+-            <span>Миссии</span>
++            <span data-i18n="menu.missions">Миссии</span>
++          </button>
++          <button class="menu-item" data-tab="settings">
++            <span class="icon">⚙️</span>
++            <span data-i18n="menu.settings">Настройки</span>
+           </button>
+           <button class="menu-item logout" id="logoutButton">
+             <span class="icon">🚪</span>
+-            <span>Выйти</span>
++            <span data-i18n="menu.logout">Выйти</span>
+           </button>
+         </aside>
+ 
+         <div class="tabs glassy">
+           <div class="tab-content active" id="profile">
+             <div class="profile-card">
+               <div class="avatar">
+                 <span id="profileInitials">NP</span>
+               </div>
+               <div class="profile-info">
+                 <h2 id="profileName">NeoPlayer</h2>
+                 <p><span id="profileLevel">Уровень 1</span> • <span id="profileExperience">Опыт 0/100</span></p>
+                 <div class="progress">
+                   <div class="progress-bar" id="profileProgress" style="width: 0%"></div>
+                 </div>
+               </div>
+             </div>
+             <div class="profile-grid">
+               <article class="info-tile">
+-                <h3>Статистика</h3>
++                <h3 data-i18n="profile.stats">Статистика</h3>
+                 <ul>
+-                  <li>Побед: <span id="profileWins">0</span></li>
+-                  <li>Любимая игра: <span id="profileFavourite">—</span></li>
+-                  <li>VIP-уровень: <span id="profileVip">Новичок</span></li>
++                  <li data-i18n-html="profile.wins">Побед: <span id="profileWins">0</span></li>
++                  <li data-i18n-html="profile.favourite">Любимая игра: <span id="profileFavourite">—</span></li>
++                  <li data-i18n-html="profile.vip">VIP-уровень: <span id="profileVip">Новичок</span></li>
+                 </ul>
+               </article>
+               <article class="info-tile">
+-                <h3>Активность</h3>
+-                <p>Последний визит: <span id="profileVisit">—</span></p>
+-                <p>Серия побед: <span id="profileStreak">0</span></p>
++                <h3 data-i18n="profile.activity">Активность</h3>
++                <p data-i18n-html="profile.lastVisit">Последний визит: <span id="profileVisit">—</span></p>
++                <p data-i18n-html="profile.streak">Серия побед: <span id="profileStreak">0</span></p>
+               </article>
+             </div>
+           </div>
+ 
+           <div class="tab-content" id="security">
+-            <h2>Безопасность</h2>
++            <h2 data-i18n="security.title">Безопасность</h2>
+             <div class="security-grid">
+               <div class="security-item">
+                 <div>
+-                  <h3>Двухфакторная аутентификация</h3>
+-                  <p>Добавьте дополнительный уровень защиты аккаунта.</p>
++                  <h3 data-i18n="security.mfa.title">Двухфакторная аутентификация</h3>
++                  <p data-i18n="security.mfa.text">Добавьте дополнительный уровень защиты аккаунта.</p>
+                 </div>
+-                <button class="btn outline">Настроить</button>
++                <button class="btn outline" data-i18n="security.mfa.button">Настроить</button>
+               </div>
+               <div class="security-item">
+                 <div>
+-                  <h3>Смена пароля</h3>
+-                  <p>Рекомендуем обновлять пароль каждые 3 месяца.</p>
++                  <h3 data-i18n="security.password.title">Смена пароля</h3>
++                  <p data-i18n="security.password.text">Рекомендуем обновлять пароль каждые 3 месяца.</p>
+                 </div>
+-                <button class="btn outline">Изменить</button>
++                <button class="btn outline" data-i18n="security.password.button">Изменить</button>
+               </div>
+             </div>
+           </div>
+ 
+           <div class="tab-content" id="notifications">
+-            <h2>Настройки уведомлений</h2>
++            <h2 data-i18n="notifications.title">Настройки уведомлений</h2>
+             <div class="notification-list">
+               <label class="toggle">
+-                <span>Промо-акции и бонусы</span>
++                <span data-i18n="notifications.promos">Промо-акции и бонусы</span>
+                 <input type="checkbox" checked />
+                 <span class="slider"></span>
+               </label>
+               <label class="toggle">
+-                <span>Системные уведомления</span>
++                <span data-i18n="notifications.system">Системные уведомления</span>
+                 <input type="checkbox" checked />
+                 <span class="slider"></span>
+               </label>
+               <label class="toggle">
+-                <span>Игровые события</span>
++                <span data-i18n="notifications.events">Игровые события</span>
+                 <input type="checkbox" />
+                 <span class="slider"></span>
+               </label>
+             </div>
+           </div>
+ 
+           <div class="tab-content" id="vip">
+-            <h2>Программа лояльности</h2>
++            <h2 data-i18n="vip.title">Программа лояльности</h2>
+             <div class="vip-tiers">
+               <div class="vip-tier">
+                 <h3>Silver</h3>
+-                <p>Кэшбек 5%, быстрые выплаты.</p>
++                <p data-i18n="vip.silver">Кэшбек 5%, быстрые выплаты.</p>
+               </div>
+               <div class="vip-tier active">
+                 <h3>Gold</h3>
+-                <p>Персональный менеджер, эксклюзивные турниры.</p>
++                <p data-i18n="vip.gold">Персональный менеджер, эксклюзивные турниры.</p>
+               </div>
+               <div class="vip-tier">
+                 <h3>Diamond</h3>
+-                <p>VIP-ивенты, премиальные подарки, увеличенный кэшбек.</p>
++                <p data-i18n="vip.diamond">VIP-ивенты, премиальные подарки, увеличенный кэшбек.</p>
+               </div>
+             </div>
+           </div>
+ 
+           <div class="tab-content" id="missions">
+-            <h2>Дневные миссии</h2>
++            <h2 data-i18n="missions.title">Дневные миссии</h2>
+             <div class="missions-list">
+               <article class="mission">
+-                <h3>Сделай 3 ставки — получи бонус!</h3>
+-                <p>Прогресс: 2/3</p>
++                <h3 data-i18n="missions.first.title">Сделай 3 ставки — получи бонус!</h3>
++                <p data-i18n="missions.first.progress">Прогресс: 2/3</p>
+                 <div class="progress">
+                   <div class="progress-bar" style="width: 66%"></div>
+                 </div>
+               </article>
+               <article class="mission">
+-                <h3>Выиграй в слотах 5 раз</h3>
+-                <p>Прогресс: 1/5</p>
++                <h3 data-i18n="missions.second.title">Выиграй в слотах 5 раз</h3>
++                <p data-i18n="missions.second.progress">Прогресс: 1/5</p>
+                 <div class="progress">
+                   <div class="progress-bar" style="width: 20%"></div>
+                 </div>
+               </article>
+             </div>
+           </div>
++
++          <div class="tab-content" id="settings">
++            <h2 data-i18n="settings.title">Настройки</h2>
++            <div class="settings-card">
++              <label class="input-group">
++                <span data-i18n="settings.language">Язык интерфейса</span>
++                <select id="languageSelect">
++                  <option value="ru" data-i18n="settings.language.ru">Русский</option>
++                  <option value="tr" data-i18n="settings.language.tr">Türkçe</option>
++                  <option value="en" data-i18n="settings.language.en">English</option>
++                </select>
++              </label>
++              <p class="settings-note" data-i18n="settings.note">Выберите язык интерфейса. Настройки сохранятся для следующих посещений.</p>
++            </div>
++          </div>
+         </div>
+       </div>
+     </section>
+ 
+     <section id="home" class="page-block home" data-page="home">
+       <div class="hero glassy">
+         <div class="hero-content">
+-          <h1>NeoCasino — почувствуй азарт</h1>
+-          <p>Геймифицированный портал с честными выигрышами, ежедневными миссиями и живой атмосферой.</p>
++          <h1 data-i18n="home.hero.title">NeoCasino — почувствуй азарт</h1>
++          <p data-i18n="home.hero.text">Геймифицированный портал с честными выигрышами, ежедневными миссиями и живой атмосферой.</p>
+           <div class="hero-actions">
+-            <button class="btn primary">Играть сейчас</button>
+-            <button class="btn outline">Узнать больше</button>
++            <button class="btn primary" data-i18n="home.hero.play">Играть сейчас</button>
++            <button class="btn outline" data-i18n="home.hero.more">Узнать больше</button>
+           </div>
+         </div>
+         <div class="hero-visual">
+           <div class="chip"></div>
+           <div class="dice"></div>
+           <div class="coin"></div>
+         </div>
+       </div>
+ 
+       <div class="game-filters glassy">
+-        <span>Категории игр</span>
++        <span data-i18n="home.filters">Категории игр</span>
+         <div class="switch" role="radiogroup">
+-          <button class="switch-option active" data-category="online">Онлайн</button>
+-          <button class="switch-option" data-category="offline">Оффлайн</button>
++          <button class="switch-option active" data-category="online" data-i18n="home.filters.online">Онлайн</button>
++          <button class="switch-option" data-category="offline" data-i18n="home.filters.offline">Оффлайн</button>
+         </div>
+       </div>
+ 
+       <div class="game-grid">
+         <article class="game-card online" data-game="roulette">
+           <figure class="game-thumb">
+-            <img src="https://i.imgur.com/jXl2rG7.jpeg" alt="Колесо рулетки" loading="lazy" />
++            <svg
++              class="generated-thumb generated-thumb--roulette"
++              viewBox="0 0 120 90"
++              role="img"
++              aria-label="Колесо рулетки"
++            >
++              <defs>
++                <linearGradient id="rouletteCardBg" x1="0%" y1="0%" x2="100%" y2="100%">
++                  <stop offset="0%" stop-color="#0f1a2c" />
++                  <stop offset="100%" stop-color="#1c2850" />
++                </linearGradient>
++                <radialGradient id="rouletteOuter" cx="50%" cy="45%" r="48%">
++                  <stop offset="0%" stop-color="#1f3b5b" />
++                  <stop offset="100%" stop-color="#0b1320" />
++                </radialGradient>
++                <linearGradient id="rouletteHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
++                  <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.6" />
++                  <stop offset="100%" stop-color="rgba(0, 212, 255, 0)" />
++                </linearGradient>
++              </defs>
++              <rect width="120" height="90" rx="18" fill="url(#rouletteCardBg)" />
++              <g transform="translate(60 45)">
++                <circle r="34" fill="#0e172b" stroke="#00d4ff" stroke-width="2" opacity="0.25" />
++                <circle r="30" fill="url(#rouletteOuter)" stroke="rgba(255, 255, 255, 0.18)" stroke-width="2" />
++                <g stroke="rgba(0, 212, 255, 0.45)" stroke-width="1.6">
++                  <line x1="0" y1="-30" x2="0" y2="30" />
++                  <line x1="-30" y1="0" x2="30" y2="0" />
++                  <line x1="-21" y1="-21" x2="21" y2="21" />
++                  <line x1="21" y1="-21" x2="-21" y2="21" />
++                </g>
++                <circle r="18" fill="#162742" stroke="rgba(255, 255, 255, 0.25)" stroke-width="1.4" />
++                <circle r="7" fill="#00d4ff" opacity="0.85" />
++                <circle r="3" fill="#ffffff" />
++              </g>
++              <circle cx="88" cy="26" r="4" fill="#a970ff" opacity="0.75" />
++              <rect x="12" y="12" width="96" height="66" rx="16" fill="url(#rouletteHighlight)" opacity="0.4" />
++            </svg>
+           </figure>
+-          <h3>Онлайн Рулетка</h3>
++          <h3 data-i18n="games.roulette.title">Онлайн Рулетка</h3>
+           <p class="rating">★ 4.8</p>
+-          <button class="btn secondary game-launch">Играть</button>
++          <button class="btn secondary game-launch" data-i18n="games.play">Играть</button>
++        </article>
++        <article class="game-card online" data-game="crash">
++          <figure class="game-thumb">
++            <svg
++              class="generated-thumb generated-thumb--crash"
++              viewBox="0 0 120 90"
++              role="img"
++              aria-label="Ракета NeoCasino"
++            >
++              <defs>
++                <linearGradient id="crashCardBg" x1="0%" y1="100%" x2="100%" y2="0%">
++                  <stop offset="0%" stop-color="#071021" />
++                  <stop offset="100%" stop-color="#1a2d52" />
++                </linearGradient>
++                <linearGradient id="crashRocket" x1="0%" y1="0%" x2="100%" y2="100%">
++                  <stop offset="0%" stop-color="#00d4ff" />
++                  <stop offset="100%" stop-color="#a970ff" />
++                </linearGradient>
++                <linearGradient id="crashFlame" x1="0%" y1="0%" x2="0%" y2="100%">
++                  <stop offset="0%" stop-color="#ffde7a" />
++                  <stop offset="100%" stop-color="#ff7a7a" />
++                </linearGradient>
++                <radialGradient id="crashGlow" cx="30%" cy="30%" r="70%">
++                  <stop offset="0%" stop-color="rgba(0, 212, 255, 0.45)" />
++                  <stop offset="100%" stop-color="rgba(10, 20, 37, 0)" />
++                </radialGradient>
++              </defs>
++              <rect width="120" height="90" rx="18" fill="url(#crashCardBg)" />
++              <rect x="8" y="10" width="104" height="70" rx="20" fill="url(#crashGlow)" opacity="0.8" />
++              <g transform="translate(52 50) rotate(-18)">
++                <path
++                  d="M0 -18 C4 -18 10 -12 10 -4 C10 0 6 8 0 18 C-6 8 -10 0 -10 -4 C-10 -12 -4 -18 0 -18Z"
++                  fill="url(#crashRocket)"
++                  stroke="rgba(255, 255, 255, 0.35)"
++                  stroke-width="1.2"
++                />
++                <circle cx="0" cy="-6" r="5" fill="#061225" stroke="#00d4ff" stroke-width="1.2" />
++                <circle cx="0" cy="-6" r="2.5" fill="#00d4ff" opacity="0.8" />
++                <path d="M-10 0 L-20 6 L-12 -2 Z" fill="#00aaff" opacity="0.8" />
++                <path d="M10 0 L20 6 L12 -2 Z" fill="#a970ff" opacity="0.8" />
++                <path d="M0 18 C4 22 6 28 0 32 C-6 28 -4 22 0 18Z" fill="url(#crashFlame)" />
++              </g>
++              <g fill="#ffffff" opacity="0.6">
++                <circle cx="34" cy="20" r="2" />
++                <circle cx="90" cy="18" r="1.6" />
++                <circle cx="76" cy="34" r="1.2" />
++                <circle cx="24" cy="46" r="1.4" />
++                <circle cx="86" cy="60" r="2" />
++                <circle cx="40" cy="68" r="1" />
++              </g>
++              <path
++                d="M24 64 C40 56 54 50 70 44"
++                stroke="rgba(0, 212, 255, 0.45)"
++                stroke-width="2"
++                stroke-linecap="round"
++                fill="none"
++              />
++            </svg>
++          </figure>
++          <h3 data-i18n="games.crash.title">Rocket Crash</h3>
++          <p class="rating">★ 4.9</p>
++          <button class="btn secondary game-launch" data-i18n="games.play">Играть</button>
+         </article>
+-        <article class="game-card offline" data-game="blackjack">
++        <article class="game-card online" data-game="blackjack">
+           <figure class="game-thumb">
+-            <img src="https://i.imgur.com/txlCdxO.png" alt="Логотип блэкджека" loading="lazy" />
++            <svg
++              class="generated-thumb generated-thumb--blackjack"
++              viewBox="0 0 120 90"
++              role="img"
++              aria-label="Стол Blackjack"
++            >
++              <defs>
++                <linearGradient id="bjTableGradient" x1="0%" y1="0%" x2="100%" y2="100%">
++                  <stop offset="0%" stop-color="#0c5a2b" />
++                  <stop offset="100%" stop-color="#0a4721" />
++                </linearGradient>
++                <radialGradient id="bjGlow" cx="50%" cy="40%" r="70%">
++                  <stop offset="0%" stop-color="rgba(0,212,255,0.7)" />
++                  <stop offset="100%" stop-color="rgba(0,212,255,0)" />
++                </radialGradient>
++              </defs>
++              <rect x="6" y="10" width="108" height="70" rx="18" fill="url(#bjTableGradient)" />
++              <ellipse cx="60" cy="45" rx="46" ry="28" fill="rgba(0,0,0,0.35)" />
++              <ellipse cx="60" cy="38" rx="40" ry="22" fill="url(#bjGlow)" />
++              <g fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2">
++                <path d="M26 52c12-8 24-12 34-12s22 4 34 12" />
++                <path d="M30 59c10-6 20-9 30-9s20 3 30 9" />
++              </g>
++              <g font-family="'Poppins', sans-serif" font-size="11" font-weight="600" text-anchor="middle" fill="#ffffff">
++                <text x="60" y="36" fill="#00d4ff">NeoCasino</text>
++                <text x="60" y="52" fill="#6c63ff">BLACKJACK</text>
++              </g>
++              <circle cx="38" cy="58" r="6" fill="#00d4ff" opacity="0.85" />
++              <circle cx="82" cy="58" r="6" fill="#6c63ff" opacity="0.75" />
++            </svg>
+           </figure>
+-          <h3>Оффлайн Блэкджэк</h3>
+-          <p class="rating">★ 4.7</p>
+-          <button class="btn secondary game-launch">Играть</button>
++          <h3 data-i18n="games.blackjack.title">NeoCasino Blackjack</h3>
++          <p class="rating">★ 4.9</p>
++          <button class="btn secondary game-launch" data-i18n="games.play">Играть</button>
+         </article>
+         <article class="game-card online">
+           <figure class="game-thumb">
+-            <img
+-              src="https://images.unsplash.com/photo-1619474446860-0e53e13d9a9f?auto=format&fit=crop&w=400&q=80"
+-              alt="Яркие барабаны игрового автомата"
+-              loading="lazy"
+-            />
++            <svg
++              class="generated-thumb generated-thumb--fruit"
++              viewBox="0 0 120 90"
++              role="img"
++              aria-label="Фрукты на барабанах"
++            >
++              <defs>
++                <linearGradient id="fruitCardBg" x1="0%" y1="100%" x2="100%" y2="0%">
++                  <stop offset="0%" stop-color="#121b33" />
++                  <stop offset="100%" stop-color="#1f2d54" />
++                </linearGradient>
++                <linearGradient id="fruitMachine" x1="0%" y1="0%" x2="0%" y2="100%">
++                  <stop offset="0%" stop-color="rgba(255, 255, 255, 0.18)" />
++                  <stop offset="100%" stop-color="rgba(255, 255, 255, 0.05)" />
++                </linearGradient>
++              </defs>
++              <rect width="120" height="90" rx="18" fill="url(#fruitCardBg)" />
++              <rect x="16" y="20" width="88" height="52" rx="14" fill="#0b1320" opacity="0.85" />
++              <rect x="22" y="26" width="76" height="40" rx="12" fill="url(#fruitMachine)" />
++              <g transform="translate(40 46)">
++                <circle r="12" fill="#ff6c85" />
++                <path d="M0 -11 C3 -15 6 -15 8 -10" stroke="#ffd17a" stroke-width="2" fill="none" stroke-linecap="round" />
++                <circle cx="-2" cy="2" r="2" fill="#ffffff" opacity="0.6" />
++              </g>
++              <g transform="translate(60 46)">
++                <circle r="11" fill="#ffdf6b" />
++                <rect x="-3" y="-14" width="6" height="6" rx="2" fill="#3aa655" />
++                <circle cx="3" cy="2" r="2" fill="#ffffff" opacity="0.6" />
++              </g>
++              <g transform="translate(80 46)">
++                <path
++                  d="M0 -10 C6 -10 10 -4 10 0 C10 6 6 12 0 12 C-6 12 -10 6 -10 0 C-10 -6 -6 -10 0 -10Z"
++                  fill="#7de3ff"
++                />
++                <circle cx="2" cy="2" r="2" fill="#ffffff" opacity="0.6" />
++              </g>
++              <rect x="28" y="70" width="64" height="4" rx="2" fill="#00d4ff" opacity="0.4" />
++            </svg>
+           </figure>
+-          <h3>Fruit Spin</h3>
++          <h3 data-i18n="games.fruit.title">Fruit Spin</h3>
+           <p class="rating">★ 4.5</p>
+-          <button class="btn secondary" disabled>Скоро</button>
++          <button class="btn secondary" disabled data-i18n="games.soon">Скоро</button>
+         </article>
+         <article class="game-card offline">
+           <figure class="game-thumb">
+-            <img
+-              src="https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=400&q=80"
+-              alt="Неоновая вспышка в темном казино"
+-              loading="lazy"
+-            />
++            <svg
++              class="generated-thumb generated-thumb--neon"
++              viewBox="0 0 120 90"
++              role="img"
++              aria-label="Неоновая вспышка"
++            >
++              <defs>
++                <linearGradient id="neonCardBg" x1="0%" y1="0%" x2="100%" y2="100%">
++                  <stop offset="0%" stop-color="#111a31" />
++                  <stop offset="100%" stop-color="#201c4b" />
++                </linearGradient>
++                <radialGradient id="neonBurst" cx="50%" cy="45%" r="50%">
++                  <stop offset="0%" stop-color="rgba(0, 212, 255, 0.6)" />
++                  <stop offset="60%" stop-color="rgba(169, 112, 255, 0.4)" />
++                  <stop offset="100%" stop-color="rgba(11, 19, 32, 0)" />
++                </radialGradient>
++              </defs>
++              <rect width="120" height="90" rx="18" fill="url(#neonCardBg)" />
++              <g fill="none" stroke-linecap="round" stroke-width="3">
++                <path d="M20 70 Q60 10 100 70" stroke="rgba(0, 212, 255, 0.35)" />
++                <path d="M20 54 Q60 18 100 54" stroke="rgba(169, 112, 255, 0.5)" />
++                <path d="M32 64 Q60 24 88 64" stroke="rgba(255, 255, 255, 0.18)" />
++              </g>
++              <circle cx="60" cy="42" r="26" fill="url(#neonBurst)" />
++              <circle cx="60" cy="42" r="12" fill="rgba(0, 212, 255, 0.65)" opacity="0.75" />
++              <circle cx="60" cy="42" r="4" fill="#ffffff" opacity="0.85" />
++            </svg>
+           </figure>
+-          <h3>Neon Crash</h3>
++          <h3 data-i18n="games.neon.title">Neon Crash</h3>
+           <p class="rating">★ 4.3</p>
+-          <button class="btn secondary" disabled>Скоро</button>
++          <button class="btn secondary" disabled data-i18n="games.soon">Скоро</button>
+         </article>
+         <article class="game-card online">
+           <figure class="game-thumb">
+-            <img
+-              src="https://images.unsplash.com/photo-1533237264985-ee7a4c0873c1?auto=format&fit=crop&w=400&q=80"
+-              alt="Игроки за покерным столом"
+-              loading="lazy"
+-            />
++            <svg
++              class="generated-thumb generated-thumb--poker"
++              viewBox="0 0 120 90"
++              role="img"
++              aria-label="Игровые карты"
++            >
++              <defs>
++                <linearGradient id="pokerCardBg" x1="0%" y1="100%" x2="100%" y2="0%">
++                  <stop offset="0%" stop-color="#101a30" />
++                  <stop offset="100%" stop-color="#1a2f58" />
++                </linearGradient>
++                <linearGradient id="pokerCardFace" x1="0%" y1="0%" x2="0%" y2="100%">
++                  <stop offset="0%" stop-color="rgba(255, 255, 255, 0.95)" />
++                  <stop offset="100%" stop-color="rgba(230, 235, 245, 0.85)" />
++                </linearGradient>
++              </defs>
++              <rect width="120" height="90" rx="18" fill="url(#pokerCardBg)" />
++              <g transform="translate(60 48)">
++                <g transform="rotate(-12)">
++                  <rect x="-38" y="-32" width="54" height="70" rx="10" fill="url(#pokerCardFace)" opacity="0.6" />
++                </g>
++                <g transform="rotate(8)">
++                  <rect x="-24" y="-34" width="54" height="70" rx="10" fill="url(#pokerCardFace)" />
++                  <path d="M-6 -10 L0 -2 L6 -10 L0 -18 Z" fill="#ff6b7a" />
++                  <path d="M-6 16 L0 24 L6 16 L0 8 Z" fill="#ff6b7a" />
++                </g>
++              </g>
++              <circle cx="38" cy="26" r="5" fill="#00d4ff" opacity="0.7" />
++              <circle cx="88" cy="30" r="3" fill="#ffffff" opacity="0.5" />
++            </svg>
+           </figure>
+-          <h3>Turbo Poker</h3>
++          <h3 data-i18n="games.poker.title">Turbo Poker</h3>
+           <p class="rating">★ 4.6</p>
+-          <button class="btn secondary" disabled>Скоро</button>
++          <button class="btn secondary" disabled data-i18n="games.soon">Скоро</button>
+         </article>
+         <article class="game-card offline">
+           <figure class="game-thumb">
+-            <img
+-              src="https://images.unsplash.com/photo-1526682847805-7214b00af12c?auto=format&fit=crop&w=400&q=80"
+-              alt="Сияющее колесо фортуны"
+-              loading="lazy"
+-            />
++            <svg
++              class="generated-thumb generated-thumb--wheel"
++              viewBox="0 0 120 90"
++              role="img"
++              aria-label="Колесо фортуны"
++            >
++              <defs>
++                <linearGradient id="wheelCardBg" x1="0%" y1="0%" x2="100%" y2="100%">
++                  <stop offset="0%" stop-color="#101b33" />
++                  <stop offset="100%" stop-color="#222b55" />
++                </linearGradient>
++                <radialGradient id="wheelOuter" cx="50%" cy="45%" r="48%">
++                  <stop offset="0%" stop-color="#1e3358" />
++                  <stop offset="100%" stop-color="#0b1320" />
++                </radialGradient>
++              </defs>
++              <rect width="120" height="90" rx="18" fill="url(#wheelCardBg)" />
++              <g transform="translate(60 48)">
++                <circle r="32" fill="url(#wheelOuter)" stroke="rgba(255, 255, 255, 0.15)" stroke-width="2" />
++                <g stroke-width="6" stroke-linecap="round">
++                  <path d="M0 0 L0 -28" stroke="#00d4ff" />
++                  <path d="M0 0 L24 14" stroke="#a970ff" />
++                  <path d="M0 0 L-24 14" stroke="#ffd166" />
++                  <path d="M0 0 L0 28" stroke="#ff6b7a" />
++                </g>
++                <circle r="10" fill="#061225" stroke="#00d4ff" stroke-width="2" />
++                <circle r="4" fill="#00d4ff" />
++              </g>
++              <path d="M58 12 L62 20 L54 20 Z" fill="#ffffff" opacity="0.8" />
++            </svg>
+           </figure>
+-          <h3>Lucky Wheel</h3>
++          <h3 data-i18n="games.wheel.title">Lucky Wheel</h3>
+           <p class="rating">★ 4.2</p>
+-          <button class="btn secondary" disabled>Скоро</button>
++          <button class="btn secondary" disabled data-i18n="games.soon">Скоро</button>
+         </article>
+       </div>
+     </section>
+   </main>
+ 
+   <footer class="footer glassy">
+     <div class="vip-panel">
+-      <h3>Программа лояльности</h3>
+-      <p>Собирайте опыт, открывайте уровни Silver, Gold и Diamond, получайте эксклюзивные бонусы.</p>
++      <h3 data-i18n="footer.vip.title">Программа лояльности</h3>
++      <p data-i18n="footer.vip.text">Собирайте опыт, открывайте уровни Silver, Gold и Diamond, получайте эксклюзивные бонусы.</p>
+     </div>
+     <div class="missions-panel">
+-      <h3>Дневные миссии</h3>
+-      <p>Ежедневно выполняйте задания и забирайте дополнительные награды.</p>
++      <h3 data-i18n="footer.missions.title">Дневные миссии</h3>
++      <p data-i18n="footer.missions.text">Ежедневно выполняйте задания и забирайте дополнительные награды.</p>
+     </div>
+   </footer>
+ 
+-  <div class="chat-widget" aria-label="Чат-поддержка">
+-    <button class="chat-button">💬</button>
++  <div class="chat-widget" data-i18n-aria-label="chat.label" aria-label="Чат-поддержка">
++    <button class="chat-button" data-i18n-aria-label="chat.button" aria-label="Открыть чат">💬</button>
+   </div>
+ 
+   <div class="live-ticker glassy" aria-live="polite">
+     <div class="ticker-track" id="tickerTrack">
+-      <span>🎉 Игрок LuckyFox выиграл 1200₽ в Fruit Spin!</span>
+-      <span>🔥 User_234 сделал ставку 500₽ в Рулетке!</span>
+-      <span>🏆 NeoQueen сорвала джекпот 3 400₽ в Turbo Poker!</span>
++      <span data-i18n="ticker.messages.0">🎉 Игрок LuckyFox выиграл 1200₺ в Fruit Spin!</span>
++      <span data-i18n="ticker.messages.1">🔥 User_234 сделал ставку 500₺ в Рулетке!</span>
++      <span data-i18n="ticker.messages.2">🏆 NeoQueen сорвала джекпот 3 400₺ в Turbo Poker!</span>
+     </div>
+   </div>
+ 
+   <section id="rouletteGame" class="page-block game-page hidden" data-page="roulette" data-requires-auth="true">
+     <div class="game-layout glassy">
+       <div class="game-header">
+         <div class="game-title">
+-          <button class="btn outline back-to-lobby" data-target="home">← В лобби</button>
+-          <h2>Онлайн Рулетка</h2>
++          <button class="btn outline back-to-lobby" data-target="home" data-i18n="roulette.back">← В лобби</button>
++          <h2 data-i18n="roulette.title">Онлайн Рулетка</h2>
+         </div>
+-        <p>Сделайте ставку на один цвет и запустите колесо удачи.</p>
++        <p data-i18n="roulette.subtitle">Сделайте ставку на один цвет и запустите колесо удачи.</p>
+       </div>
+       <div class="game-body">
+         <div class="game-visual">
+-          <img src="https://i.imgur.com/jXl2rG7.jpeg" alt="Колесо рулетки" />
++          <svg
++            class="roulette-wheel-art"
++            viewBox="0 0 360 360"
++            role="img"
++            aria-label="Колесо рулетки"
++          >
++            <defs>
++              <radialGradient id="rouletteScene" cx="50%" cy="45%" r="60%">
++                <stop offset="0%" stop-color="#142444" />
++                <stop offset="100%" stop-color="#060b15" />
++              </radialGradient>
++              <linearGradient id="rouletteRim" x1="0%" y1="0%" x2="100%" y2="100%">
++                <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.45" />
++                <stop offset="100%" stop-color="#a970ff" stop-opacity="0.45" />
++              </linearGradient>
++            </defs>
++            <rect width="360" height="360" rx="40" fill="url(#rouletteScene)" />
++            <g transform="translate(180 180)">
++              <circle r="150" fill="#09101f" stroke="rgba(255, 255, 255, 0.08)" stroke-width="4" />
++              <circle r="136" fill="#0f1a30" stroke="rgba(0, 212, 255, 0.25)" stroke-width="6" />
++              <circle
++                r="118"
++                fill="none"
++                stroke="#ff6b7a"
++                stroke-width="26"
++                stroke-dasharray="32 32"
++                stroke-linecap="round"
++                transform="rotate(-18)"
++                opacity="0.85"
++              />
++              <circle
++                r="118"
++                fill="none"
++                stroke="#00d4ff"
++                stroke-width="10"
++                stroke-dasharray="12 12"
++                stroke-linecap="round"
++                opacity="0.65"
++              />
++              <g stroke="rgba(255, 255, 255, 0.18)" stroke-width="2">
++                <line x1="0" y1="-132" x2="0" y2="132" />
++                <line x1="-132" y1="0" x2="132" y2="0" />
++                <line x1="-93" y1="-93" x2="93" y2="93" />
++                <line x1="93" y1="-93" x2="-93" y2="93" />
++              </g>
++              <circle r="70" fill="#091729" stroke="rgba(255, 255, 255, 0.25)" stroke-width="4" />
++              <circle r="52" fill="#122742" stroke="#00d4ff" stroke-width="2" opacity="0.65" />
++              <circle r="22" fill="#00d4ff" opacity="0.8" />
++              <circle r="10" fill="#ffffff" />
++            </g>
++            <path d="M176 18 L184 18 L180 42 Z" fill="#ffffff" opacity="0.9" />
++            <circle cx="250" cy="70" r="9" fill="#ffd166" stroke="#ffffff" stroke-width="3" />
++            <circle cx="108" cy="94" r="6" fill="#a970ff" opacity="0.7" />
++            <circle cx="266" cy="274" r="5" fill="#00d4ff" opacity="0.8" />
++            <rect x="60" y="304" width="240" height="18" rx="9" fill="url(#rouletteRim)" opacity="0.45" />
++          </svg>
+         </div>
+         <div class="game-controls">
+           <form id="rouletteForm" class="bet-form">
+             <label class="input-group">
+-              <span>Размер ставки (₽)</span>
+-              <input type="number" name="stake" min="100" step="50" placeholder="Минимум 100" required />
++              <span data-i18n="roulette.stakeLabel">Размер ставки (₺)</span>
++              <input type="number" name="stake" min="100" step="50" placeholder="Минимум 100₺" data-i18n-placeholder="roulette.stakePlaceholder" required />
+             </label>
+             <fieldset class="bet-choices">
+-              <legend>Выбор цвета</legend>
++              <legend data-i18n="roulette.colors">Выбор цвета</legend>
+               <label>
+                 <input type="radio" name="color" value="red" required />
+-                <span class="bet-chip red">Красное</span>
++                <span class="bet-chip red" data-i18n="roulette.red">Красное</span>
+               </label>
+               <label>
+                 <input type="radio" name="color" value="black" />
+-                <span class="bet-chip black">Чёрное</span>
++                <span class="bet-chip black" data-i18n="roulette.black">Чёрное</span>
+               </label>
+               <label>
+                 <input type="radio" name="color" value="green" />
+-                <span class="bet-chip green">Зелёное</span>
++                <span class="bet-chip green" data-i18n="roulette.green">Зелёное</span>
+               </label>
+             </fieldset>
+-            <button type="submit" class="btn primary" id="rouletteStart">Сделать ставку</button>
++            <button type="submit" class="btn primary" id="rouletteStart" data-i18n="roulette.submit">Сделать ставку</button>
+           </form>
+           <div class="game-status">
+             <div class="roulette-number" id="rouletteNumber">-</div>
+             <p class="roulette-status" id="rouletteStatus">Ставка ещё не сделана.</p>
+           </div>
+           <p class="form-feedback hidden" id="rouletteFeedback"></p>
+         </div>
+         <aside class="other-bets">
+-          <h3>Ставки других игроков</h3>
++          <h3 data-i18n="roulette.sidebarTitle">Ставки других игроков</h3>
+           <ul id="rouletteOtherBets" class="other-bets-list"></ul>
+         </aside>
+       </div>
+     </div>
+   </section>
+ 
+   <section id="blackjackGame" class="page-block game-page hidden" data-page="blackjack" data-requires-auth="true">
+-    <div class="game-layout glassy">
+-      <div class="game-header">
+-        <div class="game-title">
+-          <button class="btn outline back-to-lobby" data-target="home">← В лобби</button>
+-          <h2>Блэкджэк</h2>
++    <div class="blackjack-shell glassy">
++      <div class="blackjack-header">
++        <button class="btn outline back-to-lobby" data-target="home" data-i18n="blackjack.back">← В лобби</button>
++        <div class="blackjack-header-meta">
++          <div class="blackjack-logo" aria-hidden="true">
++            <span class="blackjack-logo-glyph">N</span>
++            <span class="blackjack-logo-text">NeoCasino</span>
++          </div>
++          <div class="blackjack-headings">
++            <h2 data-i18n="blackjack.title">NeoCasino Blackjack</h2>
++            <p class="blackjack-subtitle" data-i18n="blackjack.subtitle">
++              Тёмный неоновый стол с анимированными картами и фишками.
++            </p>
++          </div>
+         </div>
+-        <p>Выбирайте ставку, тяните карты и попытайтесь обыграть дилера.</p>
+       </div>
+-      <div class="game-body">
+-        <div class="game-visual">
+-          <img src="https://i.imgur.com/txlCdxO.png" alt="Стол для блэкджека" />
+-        </div>
+-        <div class="game-controls blackjack">
+-          <form id="blackjackForm" class="bet-form">
+-            <label class="input-group">
+-              <span>Размер ставки (₽)</span>
+-              <input type="number" name="stake" min="100" step="50" placeholder="Минимум 100" required />
+-            </label>
+-            <div class="blackjack-actions">
+-              <button type="submit" class="btn primary" id="blackjackStart">Начать раунд</button>
+-              <button type="button" class="btn secondary" id="blackjackHit">Взять карту</button>
+-              <button type="button" class="btn outline" id="blackjackStand">Хватит</button>
+-              <button type="button" class="btn secondary hidden" id="blackjackRestart">Новая ставка</button>
+-            </div>
+-          </form>
+-          <div class="blackjack-table">
+-            <div class="hand">
+-              <h3>Дилер</h3>
+-              <div class="cards" id="dealerCards"></div>
+-              <p class="score">Очки: <span id="dealerScore">0</span></p>
++
++      <div class="blackjack-content">
++        <div class="blackjack-table" id="blackjackTable">
++          <div class="blackjack-surface">
++            <div class="blackjack-starfield" aria-hidden="true"></div>
++            <div class="blackjack-felt">
++              <div class="blackjack-hand dealer">
++                <span class="hand-label" data-i18n="blackjack.dealerLabel">Дилер</span>
++                <div class="card-row" id="blackjackDealerHand"></div>
++                <div class="hand-score">
++                  <span class="score-label" data-i18n="blackjack.score">Счёт</span>
++                  <span class="score-value" id="blackjackDealerScore">0</span>
++                </div>
++              </div>
++              <div class="blackjack-hand player">
++                <span class="hand-label" data-i18n="blackjack.playerLabel">Игрок</span>
++                <div class="card-row" id="blackjackPlayerHand"></div>
++                <div class="hand-score">
++                  <span class="score-label" data-i18n="blackjack.score">Счёт</span>
++                  <span class="score-value" id="blackjackPlayerScore">0</span>
++                </div>
++              </div>
+             </div>
+-            <div class="hand">
+-              <h3>Вы</h3>
+-              <div class="cards" id="playerCards"></div>
+-              <p class="score">Очки: <span id="playerScore">0</span></p>
++          </div>
++
++          <div class="blackjack-bet-zone">
++            <div class="blackjack-bet-info">
++              <span class="bet-label" data-i18n="blackjack.betTotal">Ставка</span>
++              <span class="bet-value" id="blackjackBetValue">0₺</span>
+             </div>
++            <div class="blackjack-chip-stack" id="blackjackChipStack"></div>
+           </div>
+-          <p class="blackjack-status" id="blackjackStatus">Сделайте ставку, чтобы начать.</p>
+-          <p class="form-feedback hidden" id="blackjackFeedback"></p>
+         </div>
+-        <aside class="other-bets">
+-          <h3>Ставки других игроков</h3>
+-          <ul id="blackjackOtherBets" class="other-bets-list"></ul>
++
++        <aside class="blackjack-sidebar">
++          <div class="blackjack-message" id="blackjackMessage" role="status" aria-live="polite">
++            <p data-i18n="blackjack.messageIdle">Нажмите «Ставка», чтобы выбрать фишки.</p>
++          </div>
++
++          <div class="blackjack-chips" id="blackjackChipTray">
++            <button class="blackjack-chip" type="button" data-value="10" data-i18n-aria-label="blackjack.chip10">
++              <span class="chip-graphic" aria-hidden="true">10</span>
++              <span class="chip-value">10₺</span>
++            </button>
++            <button class="blackjack-chip" type="button" data-value="20" data-i18n-aria-label="blackjack.chip20">
++              <span class="chip-graphic" aria-hidden="true">20</span>
++              <span class="chip-value">20₺</span>
++            </button>
++            <button class="blackjack-chip" type="button" data-value="50" data-i18n-aria-label="blackjack.chip50">
++              <span class="chip-graphic" aria-hidden="true">50</span>
++              <span class="chip-value">50₺</span>
++            </button>
++            <button class="blackjack-chip" type="button" data-value="100" data-i18n-aria-label="blackjack.chip100">
++              <span class="chip-graphic" aria-hidden="true">100</span>
++              <span class="chip-value">100₺</span>
++            </button>
++          </div>
++
++          <div class="blackjack-controls">
++            <button class="btn neon" id="blackjackBetButton" data-i18n="blackjack.betButton">Ставка</button>
++            <button class="btn neon" id="blackjackDealButton" data-i18n="blackjack.dealButton" disabled>Раздать</button>
++            <button class="btn neon" id="blackjackHitButton" data-i18n="blackjack.hitButton" disabled>Взять карту</button>
++            <button class="btn neon" id="blackjackStandButton" data-i18n="blackjack.standButton" disabled>Стоп</button>
++            <button class="btn neon" id="blackjackDoubleButton" data-i18n="blackjack.doubleButton" disabled>Удвоить</button>
++            <button class="btn outline neon" id="blackjackResetButton" data-i18n="blackjack.playAgain" disabled>
++              Играть снова
++            </button>
++          </div>
++
++          <p class="blackjack-disclaimer" data-i18n="blackjack.disclaimer">
++            Demo-режим. Развлекательные цели. Без реальных денег.
++          </p>
+         </aside>
+       </div>
+     </div>
+   </section>
+ 
+-  <script src="neo_casino_interactions.js"></script>
++  <section id="crashGame" class="page-block game-page hidden" data-page="crash" data-requires-auth="true">
++    <div class="crash-shell glassy">
++      <div class="crash-header">
++        <button class="btn outline back-to-lobby" data-target="home" data-i18n="crash.back">← В лобби</button>
++        <div class="crash-headings">
++          <h2 data-i18n="crash.title">Rocket Crash</h2>
++          <p class="crash-subtitle" data-i18n="crash.subtitle">
++            Делайте ставку, задайте авто-кэшаут и успейте забрать выигрыш до краша ракеты.
++          </p>
++        </div>
++      </div>
++      <div id="crashGameRoot" class="crash-app-root">
++        <div class="crash-loading" data-i18n="crash.loading">Загрузка реактивного интерфейса…</div>
++      </div>
++    </div>
++  </section>
++
++  <footer class="crash-fairness" id="crashFairness">
++    <div class="fairness-inner">
++      <p class="fairness-text" data-i18n="crash.fairnessDisclaimer">
++        Demo-режим. Обучающие цели. Без денежных операций.
++      </p>
++      <p class="fairness-hash" id="crashHashDisplay"></p>
++    </div>
++  </footer>
++
++  <script
++    type="text/babel"
++    data-presets="env"
++    data-plugins='[["transform-react-jsx", {"runtime": "classic"}]]'
++    src="neo_casino_interactions.js"
++  ></script>
+ </body>
+ </html>
